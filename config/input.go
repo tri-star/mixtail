@@ -1,5 +1,10 @@
 package config
 
+const(
+	INPUT_TYPE_DUMMY = "dummy"
+	INPUT_TYPE_SSH = "ssh"
+)
+
 type Input interface {
 	GetName() string
 	GetType() string
@@ -32,6 +37,8 @@ type InputRemote struct {
 }
 
 func NewInputRemote() *InputRemote{
+	b := new(InputBase)
 	i := new(InputRemote)
+	i.InputBase = b
 	return i
 }

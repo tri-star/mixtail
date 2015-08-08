@@ -1,10 +1,11 @@
 package app
 import (
-	"../config"
-	"../handler/input"
+	"fmt"
+	"github.com/tri-star/mixtail/config"
+	"github.com/tri-star/mixtail/handler"
 )
 
-
+// Application class.
 type Application struct {
 
 
@@ -30,20 +31,37 @@ func (a *Application) Run() {
 
 	//出力用チャンネルの作成
 	//(今はチャネルは1つなのでここで作成)
-	//outputData := make(chan []byte)
+	outputData := make(chan []byte)
 
 	//入力ソース分初期化
-	//inputHandlers := make(map[string]*input.InputHandler, 0, 10)
-	//for c := range conf.Inputs {
+	inputHandlers := make(map[string]handler.InputHandler, 0, 10)
+	for _, inputConfig := range conf.Inputs {
 		//入力ハンドラの初期化
 
-
-		//出力ハンドラの初期化
+		inputHandler, err := handler.NewInputHandler(inputConfig)
+		if err != nil {
+			panic(fmt.Sprintf("error: %s, message: %s", inputConfig.GetName(), err.Error()))
+		}
+		inputHandlers[inputConfig.GetName()] = inputHandler
 	}
 
+	for _, ih := range inputHandlers {
+		go ih.ReadInput(outputData)
+	}
 
+	wholeDone := false
+	var readData []byte
+	for wholeDone == false {
+		readData <- outputData
+		fmt.Println(readData)
 
-
+		wholeDone = true
+		for _, ih := range inputHandlers {
+			if(ih.Status() != handler.INPUT_STATUS_DONE) {
+				wholeDone = false
+			}
+		}
+	}
 
 }
 
