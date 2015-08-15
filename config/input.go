@@ -30,6 +30,7 @@ type InputRemote struct {
 	*InputBase
 
 	Host string
+	Port uint16
 	User string
 	Pass string
 	Identity string

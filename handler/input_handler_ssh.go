@@ -1,49 +1,122 @@
 package handler
 
 import (
-	"time"
 	"github.com/tri-star/mixtail/config"
+	"golang.org/x/crypto/ssh"
+	"io/ioutil"
 )
 
 type SshHandler struct{
 	*BaseHandler
 
-	host string
-	user string
-	pass string
-	identity string
-
-	command string
+	config *config.InputRemote
 }
 
 func NewSshHandler(c *config.InputRemote) *SshHandler {
 	b := new(BaseHandler)
 	s := new(SshHandler)
 	s.BaseHandler = b
-	s.name = c.Name
-	s.host = c.Host
-	s.user = c.User
-	s.pass = c.Pass
-	s.identity = c.Identity
-	s.command = c.Command
+	s.config = c
 	s.state = INPUT_STATE_NOT_STARTED
 	return s
 }
 
+func (s *SshHandler) Name() string {
+	return s.config.Name
+}
+
 func (s *SshHandler) ReadInput(ch chan *InputData) {
+	var err error
+
 	input := NewInputData()
-	input.Name = s.name
+	input.Name = s.config.Name
 	input.State = INPUT_DATA_CONTINUE
+
+	defer func() {
+		if err != nil {
+			input.State = INPUT_DATA_END
+			s.state = INPUT_STATE_ERROR
+			ch <- input
+		}
+	}()
+
+	session, err := s.createSession(s.config)
+	if err != nil {
+		return
+	}
+	defer session.Close()
 	s.state = INPUT_STATE_RUNNING
-	for i := 0; i < 10; i++ {
-		input.Data = []byte("aaaa")
+
+	r, err := session.StdoutPipe()
+	if err != nil {
+		return
+	}
+
+	go func() {
+		buffer := make([]byte, 1024)
+		for {
+			readBytes, err := r.Read(buffer)
+			if err != nil || readBytes == 0 {
+				break
+			} else {
+				input.Data = buffer[:readBytes]
+				input.State = INPUT_DATA_CONTINUE
+			}
+			ch <- input
+		}
+
+		s.state = INPUT_STATE_DONE
+		if err != nil {
+			s.state = INPUT_STATE_ERROR
+		}
+		input.State = INPUT_DATA_END
+		input.Data = nil
 		ch <- input
-		time.Sleep(100 * time.Millisecond)
+	}()
+	if err := session.Run(s.config.Command); err != nil {
+		return
 	}
 
 	s.state = INPUT_STATE_DONE
 	input.State = INPUT_DATA_END
 	input.Data = nil
-	ch <- input
+}
+
+func (s *SshHandler) createSession(config *config.InputRemote) (session *ssh.Session, err error) {
+
+	var authMethod []ssh.AuthMethod
+	var key *ssh.Signer
+	if(config.Identity != "") {
+		key, err = s.parsePrivateKey(config.Identity)
+		if err != nil {
+			return
+		}
+		authMethod = []ssh.AuthMethod{ssh.PublicKeys(*key),}
+	} else {
+		authMethod = []ssh.AuthMethod{ ssh.Password(config.Pass), }
+	}
+
+	sshConfig := new(ssh.ClientConfig)
+	sshConfig.User = config.User
+	sshConfig.Auth = authMethod
+
+	hostNameString := config.Host + ":" + string(config.Port)
+	client, err := ssh.Dial("tcp", hostNameString, sshConfig)
+	if err != nil {
+		return
+	}
+
+	session, err = client.NewSession()
+	return
+}
+
+func (s *SshHandler) parsePrivateKey(keyPath string) (key *ssh.Signer, err error) {
+	buff, err := ioutil.ReadFile(keyPath)
+	if err != nil {
+		return
+	}
+
+	parsedKey, err := ssh.ParsePrivateKey(buff)
+	key = &parsedKey
 	return
 }

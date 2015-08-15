@@ -38,7 +38,6 @@ type InputHandler interface {
 }
 
 type BaseHandler struct {
-	name string
 	typeName string
 	state uint8
 	err error
@@ -46,7 +45,7 @@ type BaseHandler struct {
 
 
 func (b *BaseHandler) Name() string {
-	return b.name
+	return ""
 }
 
 func (b *BaseHandler) Type() string {
