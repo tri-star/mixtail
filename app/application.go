@@ -3,6 +3,7 @@ import (
 	"fmt"
 	"github.com/tri-star/mixtail/config"
 	"github.com/tri-star/mixtail/handler"
+	"log"
 )
 
 // Application class.
@@ -31,10 +32,11 @@ func (a *Application) Run() {
 
 	//出力用チャンネルの作成
 	//(今はチャネルは1つなのでここで作成)
-	outputData := make(chan []byte)
+	outputData := make(chan *handler.InputData)
 
 	//入力ソース分初期化
-	inputHandlers := make(map[string]handler.InputHandler, 0, 10)
+	inputHandlers := make(map[string]handler.InputHandler)
+	endFlagList := make(map[string]bool)
 	for _, inputConfig := range conf.Inputs {
 		//入力ハンドラの初期化
 
@@ -45,21 +47,30 @@ func (a *Application) Run() {
 		inputHandlers[inputConfig.GetName()] = inputHandler
 	}
 
-	for _, ih := range inputHandlers {
+	for name, ih := range inputHandlers {
 		go ih.ReadInput(outputData)
+		endFlagList[name] = false
 	}
 
-	wholeDone := false
-	var readData []byte
-	for wholeDone == false {
-		readData <- outputData
-		fmt.Println(readData)
+	var inputData *handler.InputData
+	allEndFlag := false
+	for {
+		inputData = <-outputData
+		fmt.Printf("%s\n", inputData.Data)
 
-		wholeDone = true
-		for _, ih := range inputHandlers {
-			if(ih.Status() != handler.INPUT_STATUS_DONE) {
-				wholeDone = false
+		if inputData.State == handler.INPUT_DATA_END {
+			endFlagList[inputData.Name] = true
+		}
+
+		allEndFlag = true
+		for _, isEnd := range endFlagList {
+			if !isEnd {
+				allEndFlag = false
 			}
+		}
+		if allEndFlag {
+			log.Println("all handler stopped correctly.")
+			break
 		}
 	}
 
@@ -70,13 +81,13 @@ func (a *Application) loadConfig() (c *config.Config) {
 	c = config.NewConfig()
 
 	rc := config.NewInputRemote()
-	rc.Name = ""
+	rc.Name = "test01"
 	rc.Type = "ssh"
-	rc.Host = "urban-theory.net"
-	rc.User = "hiroki"
-	rc.Identity = "/home/hiroki/.ssh/aaaaa"
+	rc.Host = "example.com"
+	rc.User = "test"
+	rc.Identity = "/home/test/test"
 	rc.Command = "tail -f /tmp/test.txt"
 
-	append(c.Inputs, rc)
+	c.Inputs = append(c.Inputs, rc)
 	return
 }

@@ -4,6 +4,8 @@ import (
 	"github.com/tri-star/mixtail/config"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
+	"log"
+	"fmt"
 )
 
 type SshHandler struct{
@@ -37,6 +39,7 @@ func (s *SshHandler) ReadInput(ch chan *InputData) {
 			input.State = INPUT_DATA_END
 			s.state = INPUT_STATE_ERROR
 			ch <- input
+			log.Printf("Handler exited with error: %s\n", err.Error())
 		}
 	}()
 
@@ -44,7 +47,6 @@ func (s *SshHandler) ReadInput(ch chan *InputData) {
 	if err != nil {
 		return
 	}
-	defer session.Close()
 	s.state = INPUT_STATE_RUNNING
 
 	r, err := session.StdoutPipe()
@@ -53,6 +55,8 @@ func (s *SshHandler) ReadInput(ch chan *InputData) {
 	}
 
 	go func() {
+		defer session.Close()
+
 		buffer := make([]byte, 1024)
 		for {
 			readBytes, err := r.Read(buffer)
@@ -100,7 +104,11 @@ func (s *SshHandler) createSession(config *config.InputRemote) (session *ssh.Ses
 	sshConfig.User = config.User
 	sshConfig.Auth = authMethod
 
-	hostNameString := config.Host + ":" + string(config.Port)
+	port := uint16(22)
+	if config.Port != 0 {
+		port = config.Port
+	}
+	hostNameString := fmt.Sprintf("%s:%d", config.Host, port)
 	client, err := ssh.Dial("tcp", hostNameString, sshConfig)
 	if err != nil {
 		return
