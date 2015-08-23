@@ -23,20 +23,20 @@ func (d *DummyInputHandler) Name() string {
 	return d.config.Name
 }
 
-func (d *DummyInputHandler) ReadInput(ch chan *InputData) {
+func (d *DummyInputHandler) ReadInput(ch chan InputData) {
 	input := NewInputData()
 	input.Name = d.Name()
 	input.State = INPUT_DATA_CONTINUE
 	d.state = INPUT_STATE_RUNNING
 	for i := 0; i < 10; i++ {
 		input.Data = []byte("aaaa")
-		ch <- input
+		ch <- *input
 		time.Sleep(100 * time.Millisecond)
 	}
 
 	d.state = INPUT_STATE_DONE
 	input.State = INPUT_DATA_END
 	input.Data = nil
-	ch <- input
+	ch <- *input
 	return
 }

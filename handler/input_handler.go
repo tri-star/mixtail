@@ -34,7 +34,7 @@ type InputHandler interface {
 	State() uint8
 	Error() error
 
-	ReadInput(ch chan *InputData)
+	ReadInput(ch chan InputData)
 }
 
 type BaseHandler struct {

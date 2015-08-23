@@ -178,7 +178,7 @@ func (a *Application) mainCommand(options *StartupOptions) {
 
 	//出力用チャンネルの作成
 	//(今はチャネルは1つなのでここで作成)
-	outputData := make(chan *handler.InputData)
+	outputData := make(chan handler.InputData, 0)
 
 	//入力ソース分初期化
 	inputHandlers := make(map[string]handler.InputHandler)
@@ -198,12 +198,10 @@ func (a *Application) mainCommand(options *StartupOptions) {
 		endFlagList[name] = false
 	}
 
-	var inputData *handler.InputData
+	var inputData handler.InputData
 	allEndFlag := false
 	for {
-		inputData = <-outputData
-		fmt.Printf("[%s] %s\n", inputData.Name, inputData.Data)
-
+		inputData = <- outputData
 		if inputData.State == handler.INPUT_DATA_END {
 			endFlagList[inputData.Name] = true
 		}
@@ -218,6 +216,7 @@ func (a *Application) mainCommand(options *StartupOptions) {
 			log.Println("all handler stopped correctly.")
 			break
 		}
+		fmt.Printf("[%s] %s\n", inputData.Name, inputData.Data)
 	}
 
 }

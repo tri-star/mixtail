@@ -27,7 +27,7 @@ func (s *SshHandler) Name() string {
 	return s.config.Name
 }
 
-func (s *SshHandler) ReadInput(ch chan *InputData) {
+func (s *SshHandler) ReadInput(ch chan InputData) {
 	var err error
 
 	input := NewInputData()
@@ -38,7 +38,7 @@ func (s *SshHandler) ReadInput(ch chan *InputData) {
 		if err != nil {
 			input.State = INPUT_DATA_END
 			s.state = INPUT_STATE_ERROR
-			ch <- input
+			ch <- *input
 			log.Printf("Handler exited with error: %s\n", err.Error())
 		}
 	}()
@@ -60,22 +60,24 @@ func (s *SshHandler) ReadInput(ch chan *InputData) {
 		buffer := make([]byte, 1024)
 		for {
 			readBytes, err := r.Read(buffer)
-			if err != nil || readBytes == 0 {
+			if err != nil {
 				break
 			} else {
 				input.Data = buffer[:readBytes]
 				input.State = INPUT_DATA_CONTINUE
 			}
-			ch <- input
+			ch <- *input
 		}
 
 		s.state = INPUT_STATE_DONE
 		if err != nil {
 			s.state = INPUT_STATE_ERROR
+		} else {
+			input.State = INPUT_DATA_END
 		}
-		input.State = INPUT_DATA_END
 		input.Data = nil
-		ch <- input
+		ch <- *input
+
 	}()
 	if err := session.Run(s.config.Command); err != nil {
 		return
