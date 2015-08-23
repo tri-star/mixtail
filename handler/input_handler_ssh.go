@@ -31,7 +31,7 @@ func (s *SshHandler) ReadInput(ch chan InputData) {
 	var err error
 
 	input := NewInputData()
-	input.Name = s.config.Name
+	input.Name = s.config.Host + ": " + s.config.Name
 	input.State = INPUT_DATA_CONTINUE
 
 	defer func() {
