@@ -4,6 +4,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"errors"
+	"io/ioutil"
 )
 
 type ConfigParser struct {
@@ -23,6 +24,11 @@ func (cp *ConfigParser) GetResult() *Config {
 }
 
 func (cp *ConfigParser) ParseFromFile(path string) (err error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return
+	}
+	cp.Parse(data)
 	return
 }
 

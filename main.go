@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./app"
+	"github.com/tri-star/mixtail/app"
 )
 
 func main() {
