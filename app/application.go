@@ -6,6 +6,7 @@ import (
 	"log"
 	"flag"
 	"os"
+	"errors"
 )
 
 // Application class.
@@ -41,12 +42,19 @@ func GetInstance() *Application {
 
 
 func (a *Application) GetUsage() string {
-	return `Usage: mixtail [options] config-file-name.yml
+	return `
+Usage: mixtail [options] config-file.yml
+
+options:
   --example: Print an example of config file.
-  --config:  Specify config file path(default: ./config.yml)
   --version: Show version.
   --help:    Show this help.
 `
+}
+
+
+func (a *Application) PrintUsage() {
+	fmt.Print(a.GetUsage())
 }
 
 
@@ -56,6 +64,7 @@ func (a *Application) Run() {
 	options, err := a.parseStartupOptions(os.Args[1:])
 	if err != nil {
 		fmt.Println(err.Error())
+		a.PrintUsage()
 		return
 	}
 
@@ -83,17 +92,15 @@ func (a *Application) parseStartupOptions(args []string) (options *StartupOption
 	options = new(StartupOptions)
 
 	flagSet := flag.NewFlagSet("", flag.ExitOnError)
+	flagSet.Usage = a.PrintUsage
 
-	exampleFlag := flagSet.Bool("example", false, "Print an example of config file.")
-	versionFlag := flagSet.Bool("version", false, "Show version.")
-	fileName := flagSet.String("file", DEFAULT_CONFIG_FILE_NAME, "Config file name.")
+	exampleFlag := flagSet.Bool("example", false, "")
+	versionFlag := flagSet.Bool("version", false, "")
 
 	err = flagSet.Parse(args)
 	if err != nil {
 		return
 	}
-
-	options.ConfigFile = *fileName
 
 	if *versionFlag {
 		options.Command = COMMAND_VERSION
@@ -103,6 +110,13 @@ func (a *Application) parseStartupOptions(args []string) (options *StartupOption
 		options.Command = COMMAND_EXAMPLE
 		return
 	}
+
+	if len(args) < 1 {
+		err = errors.New("No file name specified.")
+		return
+	}
+
+	options.ConfigFile = args[len(args)-1]
 	return
 }
 
