@@ -7,11 +7,13 @@ import (
 	"flag"
 	"os"
 	"errors"
+	"bytes"
 )
 
 // Application class.
 type Application struct {
 
+	lineDelimiter []byte
 
 }
 
@@ -37,7 +39,9 @@ func GetInstance() *Application {
 	if(app != nil) {
 		return app
 	}
-	return new(Application)
+	app = new(Application)
+	app.lineDelimiter = []byte("\n")
+	return app
 }
 
 
@@ -216,8 +220,16 @@ func (a *Application) mainCommand(options *StartupOptions) {
 			log.Println("all handler stopped correctly.")
 			break
 		}
-		fmt.Printf("[%s] %s\n", inputData.Name, inputData.Data)
+		a.outputLines(inputData.Name, inputData.Data)
 	}
 
 }
 
+
+func (a *Application) outputLines(prefix string, data []byte) {
+	lines := bytes.Split(data, a.lineDelimiter)
+
+	for _, line := range lines[:len(lines)-1] {
+		fmt.Printf("[%s] %s\n", prefix, line)
+	}
+}
