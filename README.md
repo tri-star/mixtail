@@ -1,6 +1,9 @@
 mixtail
 ===================================
 
+[![GitHub release](http://img.shields.io/github/release/tri-star/mixtail.svg?style=flat-square)][release]
+[![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)][license]
+
 # Overview
 Mixtail watches multiple log files( or command output) and output them in single console.
 
