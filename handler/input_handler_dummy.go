@@ -5,6 +5,8 @@ import (
 	"github.com/tri-star/mixtail/config"
 )
 
+// Dummy inplementation of InputHandler.
+// This object is used for a test.
 type DummyInputHandler struct{
 	*BaseHandler
 	config *config.InputRemote

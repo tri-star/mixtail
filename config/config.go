@@ -7,6 +7,7 @@ type Config struct{
 
 }
 
+// Returns new Config.
 func NewConfig() *Config {
 	config := new(Config)
 

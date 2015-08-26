@@ -98,7 +98,7 @@ By default, `mixtail` is installed on $GOPATH/bin.
 
 * Improve config file format, especially for watching many servers. 
   (e.g. make "host" parameter could take host name array.)
-* Output filtering and keywork high lighting.
+* Output filtering and keyword high lighting.
 * Output logging.
 * Support more input types.
 
@@ -113,7 +113,7 @@ By default, `mixtail` is installed on $GOPATH/bin.
 
 ## Licence
 
-[MIT](https://github.com/tri-star/tigrep/blob/master/LICENSE)
+[MIT](https://github.com/tri-star/mixtail/blob/master/LICENSE)
 
 ## Author
 

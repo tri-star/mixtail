@@ -49,16 +49,21 @@ func (s *SshHandler) ReadInput(ch chan InputData) {
 	}
 	s.state = INPUT_STATE_RUNNING
 
+	//Set  a pipe for session's output.
+	//Remote session will blocked(sleep) if pipe is full.
 	r, err := session.StdoutPipe()
 	if err != nil {
 		return
 	}
 
+	//Data receiving needs start separately with main thread.
+	//This thread blocks until first data received.
 	go func() {
 		defer session.Close()
 
 		buffer := make([]byte, 1024)
 		for {
+			//r.Read will block(sleep) if pipe is empty.
 			readBytes, err := r.Read(buffer)
 			if err != nil {
 				break
@@ -76,16 +81,23 @@ func (s *SshHandler) ReadInput(ch chan InputData) {
 			input.State = INPUT_DATA_END
 		}
 		input.Data = nil
+
+		// Pass a copy of "input".
+		// It is needed to avoid the "input"
+		// updated unfortunately by this goroutine
+		// while the main thread refers.
 		ch <- *input
 
 	}()
+
+	//Start session.
 	if err := session.Run(s.config.Command); err != nil {
 		return
 	}
 
 	s.state = INPUT_STATE_DONE
-	input.State = INPUT_DATA_END
-	input.Data = nil
+//	input.State = INPUT_DATA_END
+//	input.Data = nil
 }
 
 func (s *SshHandler) createSession(config *config.InputRemote) (session *ssh.Session, err error) {

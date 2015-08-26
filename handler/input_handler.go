@@ -12,11 +12,15 @@ const (
 	INPUT_STATE_ERROR
 )
 
+// Input data state.
+// Which indicates whether the data is ended or not.
 const (
 	INPUT_DATA_CONTINUE = iota
 	INPUT_DATA_END
 )
 
+// InputData is used for communicate between
+// main thread and input handler's goroutine.
 type InputData struct {
 	Name string
 	State uint8
@@ -27,6 +31,7 @@ func NewInputData() *InputData {
 	i := new(InputData)
 	return i
 }
+
 
 type InputHandler interface {
 	Name() string
@@ -63,7 +68,8 @@ func (b *BaseHandler) Error() error {
 func (b *BaseHandler) ReadInput(ch chan *InputData) {
 }
 
-
+// Returns new InputHandler.
+// This funtion is just factory method of InputHandler.
 func NewInputHandler(c config.Input) (i InputHandler, e error) {
 	i = nil
 	e = nil

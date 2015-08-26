@@ -35,6 +35,7 @@ const DEFAULT_CONFIG_FILE_NAME="config.yml"
 var app *Application
 
 
+// Returns Application singleton instance.
 func GetInstance() *Application {
 	if(app != nil) {
 		return app
@@ -62,9 +63,9 @@ func (a *Application) PrintUsage() {
 }
 
 
+// Run() executes command line option parsing and dispatch corresponding command.
 func (a *Application) Run() {
 
-	//コマンドラインの解析
 	options, err := a.parseStartupOptions(os.Args[1:])
 	if err != nil {
 		fmt.Println(err.Error())
@@ -91,7 +92,7 @@ func (a *Application) Run() {
 
 }
 
-
+// Parse command line option and populate it into StartupOptions.
 func (a *Application) parseStartupOptions(args []string) (options *StartupOptions, err error){
 	options = new(StartupOptions)
 
@@ -125,6 +126,7 @@ func (a *Application) parseStartupOptions(args []string) (options *StartupOption
 }
 
 
+// Load config file(YAML) and populate it into config.Config.
 func (a *Application) loadConfig(configPath string) (c *config.Config, err error) {
 	configParser := config.NewConfigParser()
 	err = configParser.ParseFromFile(configPath)
@@ -171,25 +173,23 @@ input:
 `)
 }
 
-
+// This function is application main procedure.
+// Open input handlers and read them output until all input handler ends.
 func (a *Application) mainCommand(options *StartupOptions) {
-	//設定情報のロード
 	conf, err := a.loadConfig(options.ConfigFile)
 	if err != nil {
 		log.Println(err.Error())
 		return
 	}
 
-	//出力用チャンネルの作成
-	//(今はチャネルは1つなのでここで作成)
+	//Create output channel.
+	//All input handler communicate with this channel.
 	outputData := make(chan handler.InputData, 0)
 
-	//入力ソース分初期化
+	//Initialize input handlers.
 	inputHandlers := make(map[string]handler.InputHandler)
 	endFlagList := make(map[string]bool)
 	for _, inputConfig := range conf.Inputs {
-		//入力ハンドラの初期化
-
 		inputHandler, err := handler.NewInputHandler(inputConfig)
 		if err != nil {
 			panic(fmt.Sprintf("error: %s, message: %s", inputConfig.GetName(), err.Error()))
@@ -197,15 +197,20 @@ func (a *Application) mainCommand(options *StartupOptions) {
 		inputHandlers[inputConfig.GetName()] = inputHandler
 	}
 
+	//Start listen.
+	//Handler runs asynchronously in goroutine.
 	for name, ih := range inputHandlers {
 		go ih.ReadInput(outputData)
 		endFlagList[name] = false
 	}
 
+	//Wait outputData channel receive a data.
+	//This loop continues until all input handler exits.
 	var inputData handler.InputData
 	allEndFlag := false
 	for {
 		inputData = <- outputData
+
 		if inputData.State == handler.INPUT_DATA_END {
 			endFlagList[inputData.Name] = true
 		}
@@ -220,12 +225,14 @@ func (a *Application) mainCommand(options *StartupOptions) {
 			log.Println("all handler stopped correctly.")
 			break
 		}
+
+		//Output read data line by line.
 		a.outputLines(inputData.Name, inputData.Data)
 	}
 
 }
 
-
+// Output line with prefix string.
 func (a *Application) outputLines(prefix string, data []byte) {
 	lines := bytes.Split(data, a.lineDelimiter)
 
