@@ -32,7 +32,10 @@ func (cp *ConfigParser) ParseFromFile(path string) (err error) {
 	if err != nil {
 		return
 	}
-	cp.Parse(data)
+	err = cp.Parse(data)
+	if err != nil {
+		return
+	}
 	return
 }
 
@@ -60,6 +63,14 @@ func (cp *ConfigParser) Parse(data []byte) (err error) {
 		cp.config.Inputs = append(cp.config.Inputs, newEntry)
 	}
 
+	logSection, ok := parseResult.(map[interface{}]interface{})["log"].(map[interface{}]interface{})
+	if ok {
+		err = cp.parseLogSection(cp.config, logSection)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }
 
@@ -81,5 +92,24 @@ func (cp *ConfigParser) parseInputHandler(name string, entry map[interface{}]int
 		return
 	}
 
+	return
+}
+
+
+// Parse "log" section.
+func (cp *ConfigParser) parseLogSection(c *Config, section map[interface{}]interface{}) (err error) {
+	logging, ok := section["logging"].(bool)
+	if !ok || !logging {
+		c.Logging = false
+		return
+	}
+	c.Logging = true
+
+	logPath, ok := section["path"].(string)
+	if !ok || len(logPath) == 0 {
+		err = errors.New("'path' must be specified.")
+		return
+	}
+	c.LogPath = logPath
 	return
 }

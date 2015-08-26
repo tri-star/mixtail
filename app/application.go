@@ -8,13 +8,15 @@ import (
 	"os"
 	"errors"
 	"bytes"
+	"path/filepath"
 )
 
 // Application class.
 type Application struct {
 
 	lineDelimiter []byte
-
+	config *config.Config
+	logFile *os.File
 }
 
 type StartupOptions struct {
@@ -177,10 +179,20 @@ input:
 // This function is application main procedure.
 // Open input handlers and read them output until all input handler ends.
 func (a *Application) mainCommand(options *StartupOptions) {
-	conf, err := a.loadConfig(options.ConfigFile)
+	var err error
+	a.config, err = a.loadConfig(options.ConfigFile)
 	if err != nil {
 		log.Println(err.Error())
 		return
+	}
+
+	//Prepare logging if needed.
+	if a.config.Logging {
+		err = a.initLogging(a.config.LogPath)
+		if err != nil {
+			log.Println(err.Error())
+			return
+		}
 	}
 
 	//Create output channel.
@@ -190,7 +202,7 @@ func (a *Application) mainCommand(options *StartupOptions) {
 	//Initialize input handlers.
 	inputHandlers := make(map[string]handler.InputHandler)
 	endFlagList := make(map[string]bool)
-	for _, inputConfig := range conf.Inputs {
+	for _, inputConfig := range a.config.Inputs {
 		inputHandler, err := handler.NewInputHandler(inputConfig)
 		if err != nil {
 			panic(fmt.Sprintf("error: %s, message: %s", inputConfig.GetName(), err.Error()))
@@ -238,6 +250,26 @@ func (a *Application) outputLines(prefix string, data []byte) {
 	lines := bytes.Split(data, a.lineDelimiter)
 
 	for _, line := range lines[:len(lines)-1] {
-		fmt.Printf("[%s] %s\n", prefix, line)
+		formattedLine := fmt.Sprintf("[%s] %s\n", prefix, line)
+		fmt.Print(formattedLine)
+		if a.config.Logging {
+			a.logFile.WriteString(formattedLine)
+		}
 	}
+}
+
+
+func (a *Application) initLogging(logPath string) (err error) {
+	logDir := filepath.Dir(logPath)
+	err = os.MkdirAll(logDir, 0775)
+	if err != nil {
+		return
+	}
+
+	a.logFile, err = os.Create(logPath)
+	if err != nil {
+		return
+	}
+
+	return
 }
