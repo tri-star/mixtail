@@ -173,6 +173,10 @@ input:
     command: |
       export A=aaa
       echo $A
+
+log:
+  logging: false
+  path: /tmp/tail.log
 `)
 }
 
