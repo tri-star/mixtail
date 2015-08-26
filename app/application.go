@@ -157,6 +157,7 @@ input:
   # 'log_name01' is log name. It is used for identify log data.
   log_name01:
     type: ssh
+    host: example.com
     user: user_name
     # Either pass or identity required.
     identity: /home/user_name/.ssh/id_rsa
