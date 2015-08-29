@@ -75,10 +75,10 @@ func NewInputHandler(c config.Input) (i InputHandler, e error) {
 	e = nil
 	switch(c.GetType()) {
 	case config.INPUT_TYPE_DUMMY:
-		sshConfig := c.(*config.InputRemote)
+		sshConfig := c.(*config.InputSsh)
 		i = NewDummyInputHandler(sshConfig)
 	case config.INPUT_TYPE_SSH:
-		sshConfig := c.(*config.InputRemote)
+		sshConfig := c.(*config.InputSsh)
 		i = NewSshHandler(sshConfig)
 	default:
 		e = errors.New("Unknown input type:" + c.GetType())

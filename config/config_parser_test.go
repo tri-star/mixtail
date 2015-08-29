@@ -32,21 +32,21 @@ input:
 		t.Fail()
 	}
 
-	inputRemote, ok := conf.Inputs[0].(*config.InputRemote)
+	inputSsh, ok := conf.Inputs[0].(*config.InputSsh)
 	if !ok {
-		t.Logf("input handler type. expected: InputRemote, actual: %v", conf.Inputs)
+		t.Logf("input handler type. expected: InputSsh, actual: %v", conf.Inputs)
 		t.Fail()
 	}
 
-	if inputRemote.Name != "test01" {
-		t.Logf("input handler name. expected: test01, actual: %s", inputRemote.Name)
+	if inputSsh.Name != "test01" {
+		t.Logf("input handler name. expected: test01, actual: %s", inputSsh.Name)
 		t.Fail()
 	}
-	if inputRemote.Host != "example.com" {
-		t.Logf("host name. expected: example.com, actual: %s", inputRemote.Host)
+	if inputSsh.Host != "example.com" {
+		t.Logf("host name. expected: example.com, actual: %s", inputSsh.Host)
 		t.Fail()
 	}
 
-	t.Logf("%+v", inputRemote)
+	t.Logf("%+v", inputSsh)
 
 }

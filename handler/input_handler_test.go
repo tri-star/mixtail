@@ -8,11 +8,11 @@ import(
 func TestInputHandler(t *testing.T) {
 
 	var ic config.Input
-	ric := config.NewInputRemote()
-	ric.Name = "remote01"
-	ric.Type = config.INPUT_TYPE_DUMMY
+	ics := config.NewInputSsh()
+	ics.Name = "remote01"
+	ics.Type = config.INPUT_TYPE_DUMMY
 
-	ic = ric
+	ic = ics
 	inputHandler, err := NewInputHandler(ic)
 	if err != nil {
 		t.Logf(err.Error())
@@ -21,7 +21,7 @@ func TestInputHandler(t *testing.T) {
 
 	t.Logf("%s", inputHandler.Name())
 
-	ch := make(chan *InputData)
+	ch := make(chan InputData)
 	go inputHandler.ReadInput(ch)
 
 	inputDone := false

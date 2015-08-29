@@ -11,10 +11,10 @@ import (
 type SshHandler struct{
 	*BaseHandler
 
-	config *config.InputRemote
+	config *config.InputSsh
 }
 
-func NewSshHandler(c *config.InputRemote) *SshHandler {
+func NewSshHandler(c *config.InputSsh) *SshHandler {
 	b := new(BaseHandler)
 	s := new(SshHandler)
 	s.BaseHandler = b
@@ -100,7 +100,7 @@ func (s *SshHandler) ReadInput(ch chan InputData) {
 //	input.Data = nil
 }
 
-func (s *SshHandler) createSession(config *config.InputRemote) (session *ssh.Session, err error) {
+func (s *SshHandler) createSession(config *config.InputSsh) (session *ssh.Session, err error) {
 
 	var authMethod []ssh.AuthMethod
 	var key *ssh.Signer

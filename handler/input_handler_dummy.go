@@ -9,10 +9,10 @@ import (
 // This object is used for a test.
 type DummyInputHandler struct{
 	*BaseHandler
-	config *config.InputRemote
+	config *config.InputSsh
 }
 
-func NewDummyInputHandler(c *config.InputRemote) *DummyInputHandler {
+func NewDummyInputHandler(c *config.InputSsh) *DummyInputHandler {
 	b := new(BaseHandler)
 	d := new(DummyInputHandler)
 	d.BaseHandler = b

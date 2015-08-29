@@ -85,7 +85,7 @@ func (cp *ConfigParser) parseInputHandler(name string, entry map[interface{}]int
 	// Parse section according to "type" key.
 	switch(typeName) {
 	case INPUT_TYPE_SSH:
-		newEntry = NewInputRemote()
+		newEntry = NewInputSsh()
 		err = newEntry.BuildFromData(name, entry)
 	default:
 		err = errors.New(name + ": " + "invalid type '" + typeName + "' specified.")
