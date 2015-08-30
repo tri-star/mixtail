@@ -15,7 +15,7 @@ type Input interface {
 	GetName() string
 	GetType() string
 
-	BuildFromData(name string, data map[interface{}]interface{}) (err error)
+	BuildFromData(data map[interface{}]interface{}) (err error)
 }
 
 type InputBase struct {
@@ -37,13 +37,17 @@ func (i *InputBase) GetType() string {
 //
 // This method handles common initialization process.
 // All sub classes have to call this method.
-func (i *InputBase) BuildFromData(name string, data map[interface{}]interface{}) (err error) {
-	i.Name = name
-
+func (i *InputBase) BuildFromData(data map[interface{}]interface{}) (err error) {
 	var ok bool
+	i.Name, ok = data["name"].(string)
+	if !ok {
+		err = errors.New(i.Name + ": 'name' is not specified.")
+		return
+	}
 	i.Type, ok = data["type"].(string)
 	if !ok {
-		err = errors.New(name + ": 'type' is not specified.")
+		err = errors.New(i.Name + ": 'type' is not specified.")
+		return
 	}
 
 	return

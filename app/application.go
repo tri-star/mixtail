@@ -166,12 +166,18 @@ input:
     # pass: password
     command: tail -f /tmp/some_file
 
-  # Example for local command watching.
+  # Example for watching command across multiple hosts.
   log_name02:
-    type: local
-    # Multiline command is supported.
+    type: ssh
+    #
+    host:
+      - 192.168.1.10
+      - 192.168.1.11
+      - 192.168.1.12
+      - 192.168.1.13
+    # Multi line command is also supported.
     command: |
-      export A=aaa
+      A=aaa
       echo $A
 
 log:

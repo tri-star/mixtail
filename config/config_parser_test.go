@@ -27,6 +27,8 @@ input:
 	}
 
 	conf := cp.GetResult()
+	t.Logf("%#v", conf.Inputs)
+
 	if len(conf.Inputs) != 1 {
 		t.Logf("input handler count. expected: 1, actual: %d", len(conf.Inputs))
 		t.Fail()

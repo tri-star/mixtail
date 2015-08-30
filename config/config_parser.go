@@ -54,13 +54,10 @@ func (cp *ConfigParser) Parse(data []byte) (err error) {
 	}
 	inputSettingEntries, _ := inputSettingSection.(map[interface{}]interface{})
 	for name, entry := range inputSettingEntries {
-		var newEntry Input
-
-		newEntry, err = cp.parseInputHandler(name.(string), entry.(map[interface{}]interface{}))
+		err = cp.parseInputHandler(name.(string), entry.(map[interface{}]interface{}))
 		if err != nil {
 			return
 		}
-		cp.config.Inputs = append(cp.config.Inputs, newEntry)
 	}
 
 	logSection, ok := parseResult.(map[interface{}]interface{})["log"].(map[interface{}]interface{})
@@ -75,7 +72,7 @@ func (cp *ConfigParser) Parse(data []byte) (err error) {
 }
 
 // Internal function that parses "input" section of YAML data.
-func (cp *ConfigParser) parseInputHandler(name string, entry map[interface{}]interface{}) (newEntry Input, err error) {
+func (cp *ConfigParser) parseInputHandler(name string, entry map[interface{}]interface{}) (err error) {
 	typeName, ok := entry["type"].(string)
 	if !ok {
 		err = errors.New(name + ": " + "'type' is not specified")
@@ -83,15 +80,26 @@ func (cp *ConfigParser) parseInputHandler(name string, entry map[interface{}]int
 	}
 
 	// Parse section according to "type" key.
+	var entries []*InputSsh
 	switch(typeName) {
 	case INPUT_TYPE_SSH:
-		newEntry = NewInputSsh()
-		err = newEntry.BuildFromData(name, entry)
+		entries, err = CreateSshConfigFromData(cp.config, name, entry)
+		if err != nil {
+			return
+		}
+		if entries != nil {
+			for _, entry := range entries {
+				cp.config.Inputs = append(cp.config.Inputs, entry)
+			}
+		}
 	default:
 		err = errors.New(name + ": " + "invalid type '" + typeName + "' specified.")
 		return
 	}
 
+	if err != nil {
+		return
+	}
 	return
 }
 
