@@ -6,11 +6,8 @@ mixtail
 
 # Overview
 Mixtail watches multiple log files( or command output) and output them in single console.
-
-## Description
 This command is useful for watching file(or command output) across many servers.
 
-The command takes a YAML file like following. 
 
 ## Usage
 At first, create a config file(YAML) like following.
@@ -18,18 +15,24 @@ Config file creation is also available by running "mixtail -example".
 
 ```
 input:
-  xxx-log-hostA:
+  xxx-log:
     type: ssh
-    host: example-a.com
+    host: 
+      - 192.168.1.10
+      - 192.168.1.11
+      - 192.168.1.12
+      - 192.168.1.13
+      - 192.168.1.14
+      - 192.168.1.15
     user: user_name
     identity: /path/to/key
     command: tail -f /tmp/test.log
-  xxx-log-hostB:
+  yyy-log:
     type: ssh
-    host: example-b.com
+    host: 192.168.1.10
     user: user_name
     identity: /path/to/key
-    command: tail -f /tmp/test.log
+    command: tail -f /tmp/another.log | grep "error"
 ```
 
 Then, running mixtail command with config file name.
@@ -44,13 +47,13 @@ and output all output into a single console.
 e.g.
 
 ```
-[xxx-log-hostA] XX.XX.XX.XX - - [26/Aug/2015:07:26:57 +0900] "GET /robots.txt HTTP/1.1" ...
-[xxx-log-hostA] XX.XX.XX.XX - - [26/Aug/2015:07:27:02 +0900] "GET /xxx/xxx/xxx HTTP/1.1" ...
-[xxx-log-hostB] XX.XX.XX.XX - - [26/Aug/2015:07:27:17 +0900] "POST /xxx/xxx/xxx HTTP/1.1" ...
-[xxx-log-hostA] XX.XX.XX.XX - - [26/Aug/2015:07:27:29 +0900] "GET /xxx/xxx/xxx HTTP/1.1" ...
-[xxx-log-hostB] XX.XX.XX.XX - - [26/Aug/2015:07:32:18 +0900] "GET /xxx/xxx/xxx HTTP/1.1" ...
-[xxx-log-hostB] XX.XX.XX.XX - - [26/Aug/2015:07:32:22 +0900] "POST /xxx/xxx/xxx HTTP/1.1" ...
-[xxx-log-hostA] XX.XX.XX.XX - - [26/Aug/2015:07:32:26 +0900] "GET /xxx/xxx/xxx HTTP/1.1" ...
+[192.168.1.10: xxx-log] XX.XX.XX.XX - - [26/Aug/2015:07:26:57 +0900] "GET /robots.txt HTTP/1.1" ...
+[192.168.1.11: xxx-log] XX.XX.XX.XX - - [26/Aug/2015:07:27:02 +0900] "GET /xxx/xxx/xxx HTTP/1.1" ...
+[192.168.1.10: xxx-log] XX.XX.XX.XX - - [26/Aug/2015:07:27:17 +0900] "POST /xxx/xxx/xxx HTTP/1.1" ...
+[192.168.1.12: xxx-log] XX.XX.XX.XX - - [26/Aug/2015:07:27:29 +0900] "GET /xxx/xxx/xxx HTTP/1.1" ...
+[192.168.1.13: xxx-log] XX.XX.XX.XX - - [26/Aug/2015:07:32:18 +0900] "GET /xxx/xxx/xxx HTTP/1.1" ...
+[192.168.1.10: yyy-log] error: xxxxxxxx
+[192.168.1.10: xxx-log] XX.XX.XX.XX - - [26/Aug/2015:07:32:26 +0900] "GET /xxx/xxx/xxx HTTP/1.1" ...
 ```
 
 
@@ -96,10 +99,9 @@ By default, `mixtail` is installed on $GOPATH/bin.
 
 ## Road map
 
-* Improve config file format, especially for watching many servers. 
-  (e.g. make "host" parameter could take host name array.)
-* Output filtering and keyword high lighting.
-* Output logging.
+* Make user ID, password, identity could define external file(~/.mixtail.yml) or pass via command line. 
+* Add option for prepend time to each line.
+* Keyword highlighting(not syntax highlighting).
 * Support more input types.
 
 ## Contribution
