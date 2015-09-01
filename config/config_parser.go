@@ -5,19 +5,22 @@ import (
 
 	"errors"
 	"io/ioutil"
+	"github.com/tri-star/mixtail/ext"
 )
 
 // ConfigParser is parse YAML data and populate it into Config object.
 type ConfigParser struct {
 
 	config *Config
+	extensionManager *ext.ExtensionManager
 }
 
 
 // Returns new ConfigParser.
-func NewConfigParser() (cp *ConfigParser) {
+func NewConfigParser(extensionManager *ext.ExtensionManager) (cp *ConfigParser) {
 	cp = new(ConfigParser)
 	cp.config = NewConfig()
+	cp.extensionManager = extensionManager
 	return
 }
 
@@ -79,27 +82,16 @@ func (cp *ConfigParser) parseInputHandler(name string, entry map[interface{}]int
 		return
 	}
 
-	// Parse section according to "type" key.
-	var entries []*InputSsh
-	switch(typeName) {
-	case INPUT_TYPE_SSH:
-		entries, err = CreateSshConfigFromData(cp.config, name, entry)
-		if err != nil {
-			return
-		}
-		if entries != nil {
-			for _, entry := range entries {
-				cp.config.Inputs = append(cp.config.Inputs, entry)
-			}
-		}
-	default:
+	extension, found := cp.extensionManager.GetInputConfig(typeName)
+	if !found {
 		err = errors.New(name + ": " + "invalid type '" + typeName + "' specified.")
 		return
 	}
-
+	entries, err := extension.CreateInputConfigFromData(name, entry)
 	if err != nil {
 		return
 	}
+	cp.config.Inputs = append(cp.config.Inputs, entries...)
 	return
 }
 

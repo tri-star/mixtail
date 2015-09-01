@@ -4,11 +4,13 @@ package config_test
 import (
 	"testing"
 	"github.com/tri-star/mixtail/config"
+	"github.com/tri-star/mixtail/ext"
 )
 
 func TestParse(t *testing.T) {
 
-	cp := config.NewConfigParser()
+	extensionManager := new(ext.NewExtensionManager())
+	cp := config.NewConfigParser(extensionManager)
 
 	yaml := []byte(`
 input:

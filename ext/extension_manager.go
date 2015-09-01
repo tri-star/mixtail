@@ -5,7 +5,13 @@ import (
 	"github.com/tri-star/mixtail/handler"
 )
 
+const(
+	INPUT_CONFIG_DUMMY = "dummy"
+	INPUT_CONFIG_SSH = "ssh"
 
+	INPUT_HANDLER_DUMMY = "dummy"
+	INPUT_HANDLER_SSH = "ssh"
+)
 
 type ExtensionManager struct {
 
