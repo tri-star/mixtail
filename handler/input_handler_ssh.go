@@ -1,20 +1,20 @@
 package handler
 
 import (
-	"github.com/tri-star/mixtail/config"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"log"
 	"fmt"
+	"github.com/tri-star/mixtail/ext/input/extssh"
 )
 
 type SshHandler struct{
 	*BaseHandler
 
-	config *config.InputSsh
+	config *extssh.InputConfig
 }
 
-func NewSshHandler(c *config.InputSsh) *SshHandler {
+func NewSshHandler(c *extssh.InputConfig) *SshHandler {
 	b := new(BaseHandler)
 	s := new(SshHandler)
 	s.BaseHandler = b
@@ -96,11 +96,9 @@ func (s *SshHandler) ReadInput(ch chan InputData) {
 	}
 
 	s.state = INPUT_STATE_DONE
-//	input.State = INPUT_DATA_END
-//	input.Data = nil
 }
 
-func (s *SshHandler) createSession(config *config.InputSsh) (session *ssh.Session, err error) {
+func (s *SshHandler) createSession(config *extssh.InputConfig) (session *ssh.Session, err error) {
 
 	var authMethod []ssh.AuthMethod
 	var key *ssh.Signer

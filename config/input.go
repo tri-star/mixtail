@@ -3,12 +3,6 @@ import (
 	"errors"
 )
 
-// Input data types.
-const(
-	INPUT_TYPE_DUMMY = "dummy"
-	INPUT_TYPE_SSH = "ssh"
-)
-
 // Input is common interface of input config.
 // It is correspond to an entry of "input" section of YAML config.
 type Input interface {

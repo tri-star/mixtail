@@ -3,6 +3,8 @@ package handler
 import (
 	"errors"
 	"github.com/tri-star/mixtail/config"
+	"github.com/tri-star/mixtail/ext/input/extdummy"
+	"github.com/tri-star/mixtail/ext/input/extssh"
 )
 
 const (
@@ -74,12 +76,12 @@ func NewInputHandler(c config.Input) (i InputHandler, e error) {
 	i = nil
 	e = nil
 	switch(c.GetType()) {
-	case config.INPUT_TYPE_DUMMY:
-		sshConfig := c.(*config.InputSsh)
-		i = NewDummyInputHandler(sshConfig)
-	case config.INPUT_TYPE_SSH:
-		sshConfig := c.(*config.InputSsh)
-		i = NewSshHandler(sshConfig)
+	case extdummy.INPUT_CONFIG_TYPE:
+		config := c.(*extdummy.InputConfig)
+		i = NewDummyInputHandler(config)
+	case extssh.INPUT_CONFIG_TYPE:
+		config := c.(*extssh.InputConfig)
+		i = NewSshHandler(config)
 	default:
 		e = errors.New("Unknown input type:" + c.GetType())
 	}

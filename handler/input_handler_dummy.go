@@ -2,17 +2,17 @@ package handler
 
 import (
 	"time"
-	"github.com/tri-star/mixtail/config"
+	"github.com/tri-star/mixtail/ext/input/extdummy"
 )
 
 // Dummy inplementation of InputHandler.
 // This object is used for a test.
 type DummyInputHandler struct{
 	*BaseHandler
-	config *config.InputSsh
+	config *extdummy.InputConfig
 }
 
-func NewDummyInputHandler(c *config.InputSsh) *DummyInputHandler {
+func NewDummyInputHandler(c *extdummy.InputConfig) *DummyInputHandler {
 	b := new(BaseHandler)
 	d := new(DummyInputHandler)
 	d.BaseHandler = b

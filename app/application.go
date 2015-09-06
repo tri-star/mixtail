@@ -9,6 +9,8 @@ import (
 	"errors"
 	"bytes"
 	"path/filepath"
+	"github.com/tri-star/mixtail/ext"
+	"github.com/tri-star/mixtail/ext/input/extssh"
 )
 
 // Application class.
@@ -17,6 +19,8 @@ type Application struct {
 	lineDelimiter []byte
 	config *config.Config
 	logFile *os.File
+
+	extensionManager *ext.ExtensionManager
 }
 
 type StartupOptions struct {
@@ -44,6 +48,7 @@ func GetInstance() *Application {
 	}
 	app = new(Application)
 	app.lineDelimiter = []byte("\n")
+	app.extensionManager = ext.NewExtensionManager()
 	return app
 }
 
@@ -130,7 +135,7 @@ func (a *Application) parseStartupOptions(args []string) (options *StartupOption
 
 // Load config file(YAML) and populate it into config.Config.
 func (a *Application) loadConfig(configPath string) (c *config.Config, err error) {
-	configParser := config.NewConfigParser()
+	configParser := config.NewConfigParser(a.extensionManager)
 	err = configParser.ParseFromFile(configPath)
 	if err != nil {
 		return
@@ -138,6 +143,16 @@ func (a *Application) loadConfig(configPath string) (c *config.Config, err error
 
 	c = configParser.GetResult()
 	return
+}
+
+
+func (a *Application) InitExtensions() {
+	//SSH Config
+	sshConfigParser := extssh.NewInputConfigParser()
+	a.extensionManager.RegisterExtension(sshConfigParser)
+
+	//SSH Handler
+
 }
 
 
@@ -190,6 +205,10 @@ log:
 // Open input handlers and read them output until all input handler ends.
 func (a *Application) mainCommand(options *StartupOptions) {
 	var err error
+
+	//Setup extensions.
+	a.InitExtensions()
+
 	a.config, err = a.loadConfig(options.ConfigFile)
 	if err != nil {
 		log.Println(err.Error())
@@ -204,6 +223,8 @@ func (a *Application) mainCommand(options *StartupOptions) {
 			return
 		}
 	}
+
+
 
 	//Create output channel.
 	//All input handler communicate with this channel.

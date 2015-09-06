@@ -1,19 +1,21 @@
-package handler
+package handler_test
 
 import(
 	"testing"
 	"github.com/tri-star/mixtail/config"
+	"github.com/tri-star/mixtail/ext/input/extdummy"
+	"github.com/tri-star/mixtail/handler"
 )
 
 func TestInputHandler(t *testing.T) {
 
 	var ic config.Input
-	ics := config.NewInputSsh()
+	ics := extdummy.NewInputConfig()
 	ics.Name = "remote01"
-	ics.Type = config.INPUT_TYPE_DUMMY
+	ics.Type = extdummy.INPUT_CONFIG_TYPE
 
 	ic = ics
-	inputHandler, err := NewInputHandler(ic)
+	inputHandler, err := handler.NewInputHandler(ic)
 	if err != nil {
 		t.Logf(err.Error())
 		t.Fail()
@@ -21,13 +23,13 @@ func TestInputHandler(t *testing.T) {
 
 	t.Logf("%s", inputHandler.Name())
 
-	ch := make(chan InputData)
+	ch := make(chan handler.InputData)
 	go inputHandler.ReadInput(ch)
 
 	inputDone := false
 	for inputDone == false {
 		readData := <-ch
-		if(readData.State == INPUT_DATA_END) {
+		if(readData.State == handler.INPUT_DATA_END) {
 			inputDone = true
 			break
 		}

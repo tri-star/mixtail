@@ -1,33 +1,14 @@
 package ext
 
-import (
-	"github.com/tri-star/mixtail/config"
-	"github.com/tri-star/mixtail/handler"
-)
-
-const(
-	INPUT_CONFIG_DUMMY = "dummy"
-	INPUT_CONFIG_SSH = "ssh"
-
-	INPUT_HANDLER_DUMMY = "dummy"
-	INPUT_HANDLER_SSH = "ssh"
-)
-
 type ExtensionManager struct {
 
-	inputConfigs map[string]InputConfigExtension
-	inputHandlers map[string]InputHandlerExtension
+	extensions map[string]Extension
 }
 
 
-type InputConfigExtension interface {
-	Name() string
-	CreateInputConfigFromData(name string, data map[interface{}]interface{}) (entries []config.Input, err error)
-}
-
-type InputHandlerExtension interface {
-	Name() string
-	CreateInputHandler(config.Input) (handler.InputHandler, error)
+type Extension interface {
+	GetName() string
+	GetType() string
 }
 
 
@@ -41,34 +22,25 @@ func NewExtensionManager() (e *ExtensionManager) {
 
 
 func (e *ExtensionManager) Init() {
-	e.inputConfigs = make(map[string]InputConfigExtension)
-	e.inputHandlers = make(map[string]InputHandlerExtension)
+	e.extensions = make(map[string]Extension)
 }
 
 
-func (e *ExtensionManager) RegisterInputConfig(name string, input InputConfigExtension) {
-	e.inputConfigs[name] = input
+func (e *ExtensionManager) RegisterExtension(extension Extension) {
+	e.extensions[extension.GetName()] = extension
 }
 
-func (e *ExtensionManager) GetInputConfig(name string) (i InputConfigExtension, found bool)  {
-	i, found = e.inputConfigs[name]
+func (e *ExtensionManager) GetExtension(name string) (ext Extension, found bool)  {
+	ext, found = e.extensions[name]
 	return
 }
 
-func (e *ExtensionManager) GetInputConfigs() (map[string]InputConfigExtension) {
-	return e.inputConfigs
-}
-
-func (e *ExtensionManager) RegisterInputHandler(name string, handler InputHandlerExtension) {
-	e.inputHandlers[name] = handler
-}
-
-
-func (e *ExtensionManager) GetInputHandler(name string) (i InputHandlerExtension, found bool) {
-	i, found = e.inputHandlers[name]
+func (e *ExtensionManager) GetExtensionsByType(typeName string) (exts []Extension)  {
+	exts = make([]Extension, 0)
+	for _, extension := range e.extensions {
+		if(extension.GetType() == typeName) {
+			exts = append(exts, extension)
+		}
+	}
 	return
-}
-
-func (e *ExtensionManager) GetInputHandlers() map[string]InputHandlerExtension {
-	return e.inputHandlers
 }

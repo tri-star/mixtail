@@ -5,21 +5,29 @@ import (
 	"testing"
 	"github.com/tri-star/mixtail/config"
 	"github.com/tri-star/mixtail/ext"
+	"github.com/tri-star/mixtail/ext/input/extssh"
 )
 
 func TestParse(t *testing.T) {
 
-	extensionManager := new(ext.NewExtensionManager())
+	extensionManager := ext.NewExtensionManager()
+	extensionManager.RegisterExtension(extssh.NewInputConfigParser())
+
 	cp := config.NewConfigParser(extensionManager)
 
 	yaml := []byte(`
 input:
   test01:
     type: ssh
-    host: example.com
+    host:
+      - example.com
+      - example02.com
     user: user_name
     identity: identity-file-name
     command: testtest
+log:
+  logging: true
+  path: /tmp/test.log
 `)
 
 	err := cp.Parse(yaml)
@@ -29,28 +37,38 @@ input:
 	}
 
 	conf := cp.GetResult()
-	t.Logf("%#v", conf.Inputs)
 
-	if len(conf.Inputs) != 1 {
+	if len(conf.Inputs) != 2 {
 		t.Logf("input handler count. expected: 1, actual: %d", len(conf.Inputs))
 		t.Fail()
 	}
 
-	inputSsh, ok := conf.Inputs[0].(*config.InputSsh)
-	if !ok {
-		t.Logf("input handler type. expected: InputSsh, actual: %v", conf.Inputs)
-		t.Fail()
-	}
-
+	inputSsh := conf.Inputs[0].(*extssh.InputConfig)
 	if inputSsh.Name != "test01" {
-		t.Logf("input handler name. expected: test01, actual: %s", inputSsh.Name)
+		t.Logf("input handler name not matched. expected: test01, actual: %s", inputSsh.Name)
 		t.Fail()
 	}
 	if inputSsh.Host != "example.com" {
-		t.Logf("host name. expected: example.com, actual: %s", inputSsh.Host)
+		t.Logf("host name not matched. expected: example.com, actual: %s", inputSsh.Host)
 		t.Fail()
 	}
 
-	t.Logf("%+v", inputSsh)
+	inputSsh2 := conf.Inputs[1].(*extssh.InputConfig)
+	if inputSsh2.Name != "test01" {
+		t.Logf("input handler name not matched. expected: test01, actual: %s", inputSsh2.Name)
+		t.Fail()
+	}
+	if inputSsh2.Host != "example02.com" {
+		t.Logf("host name not matched. expected: example02.com, actual: %s", inputSsh2.Host)
+		t.Fail()
+	}
 
+	if conf.Logging != true {
+		t.Logf("Logging not enabled.")
+		t.Fail()
+	}
+	if conf.LogPath != "/tmp/test.log" {
+		t.Logf("LogPath not matched. actual: " + conf.LogPath)
+		t.Fail()
+	}
 }

@@ -1,26 +1,30 @@
-package ssh
+package extssh
+
 import (
 	"github.com/tri-star/mixtail/config"
 	"errors"
-	"github.com/tri-star/mixtail/ext"
 )
 
+const (
+	EXTENSION_TYPE = config.EXTENSION_TYPE_INPUT_CONFIG_PARSER + "-ssh"
+)
 
-type InputConfigExtension struct {
-	name string
+type InputConfigParser struct {
+	*config.BaseInputConfigParser
 }
 
-func NewInputConfigExtension() (ic *InputConfigExtension) {
-	ic = new(InputConfigExtension)
-	ic.name = ext.INPUT_CONFIG_SSH
-	return ic
+func NewInputConfigParser() (icp *InputConfigParser) {
+	icp = new(InputConfigParser)
+	icp.BaseInputConfigParser = new(config.BaseInputConfigParser)
+	icp.Name = EXTENSION_TYPE
+	return
 }
 
-func (ic *InputConfigExtension) Name() string {
+func (ic *InputConfigParser) GetName() string {
 	return ic.Name
 }
 
-func (ic *InputConfigExtension) CreateInputConfigFromData(name string, data map[interface{}]interface{}) (entries []config.Input, err error) {
+func (ic *InputConfigParser) CreateInputConfigFromData(name string, data map[interface{}]interface{}) (inputConfigs []config.Input, err error) {
 	hosts := make([]string, 0)
 	//hostパラメータを調べる。1件か、配列か？
 	hostAsString, ok := data["host"].(string)
@@ -42,10 +46,10 @@ func (ic *InputConfigExtension) CreateInputConfigFromData(name string, data map[
 
 	//host件数分ループ
 	workData := make(map[interface{}]interface{})
-	entries = make([]config.Input, 0)
+	inputConfigs = make([]config.Input, 0)
 
 	for _, hostName := range hosts {
-		entry := config.NewInputSsh()
+		entry := NewInputConfig()
 
 		for key, value := range data {
 			workData[key] = value
@@ -57,7 +61,7 @@ func (ic *InputConfigExtension) CreateInputConfigFromData(name string, data map[
 			return
 		}
 
-		entries = append(entries, entry)
+		inputConfigs = append(inputConfigs, entry)
 	}
 	return
 }

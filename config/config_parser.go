@@ -57,7 +57,7 @@ func (cp *ConfigParser) Parse(data []byte) (err error) {
 	}
 	inputSettingEntries, _ := inputSettingSection.(map[interface{}]interface{})
 	for name, entry := range inputSettingEntries {
-		err = cp.parseInputHandler(name.(string), entry.(map[interface{}]interface{}))
+		err = cp.parseInputSectionEntry(name.(string), entry.(map[interface{}]interface{}))
 		if err != nil {
 			return
 		}
@@ -74,24 +74,24 @@ func (cp *ConfigParser) Parse(data []byte) (err error) {
 	return
 }
 
-// Internal function that parses "input" section of YAML data.
-func (cp *ConfigParser) parseInputHandler(name string, entry map[interface{}]interface{}) (err error) {
+// Internal function that parses "input" section entries.
+func (cp *ConfigParser) parseInputSectionEntry(name string, entry map[interface{}]interface{}) (err error) {
 	typeName, ok := entry["type"].(string)
 	if !ok {
 		err = errors.New(name + ": " + "'type' is not specified")
 		return
 	}
 
-	extension, found := cp.extensionManager.GetInputConfig(typeName)
+	extension, found := cp.extensionManager.GetExtension(EXTENSION_TYPE_INPUT_CONFIG_PARSER + "-" + typeName)
 	if !found {
 		err = errors.New(name + ": " + "invalid type '" + typeName + "' specified.")
 		return
 	}
-	entries, err := extension.CreateInputConfigFromData(name, entry)
+	inputConfigs, err := extension.(InputConfigParser).CreateInputConfigFromData(name, entry)
 	if err != nil {
 		return
 	}
-	cp.config.Inputs = append(cp.config.Inputs, entries...)
+	cp.config.Inputs = append(cp.config.Inputs, inputConfigs...)
 	return
 }
 
