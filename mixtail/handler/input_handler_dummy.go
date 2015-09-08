@@ -2,7 +2,7 @@ package handler
 
 import (
 	"time"
-	"github.com/tri-star/mixtail/ext/input/extdummy"
+	"github.com/tri-star/mixtail/mixtail/ext/input/extdummy"
 )
 
 // Dummy inplementation of InputHandler.

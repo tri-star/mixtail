@@ -1,6 +1,6 @@
 package config
 
-import "github.com/tri-star/mixtail/ext"
+import "github.com/tri-star/mixtail/lib"
 
 const (
 	EXTENSION_TYPE_INPUT_CONFIG_PARSER="input-config-parser"
@@ -9,7 +9,7 @@ const (
 // InputConfigParser is one of an extension.
 // It converts "input" section of YAML data into config.Input.
 type InputConfigParser interface {
-	ext.Extension
+	lib.Extension
 	CreateInputConfigFromData(name string, data map[interface{}]interface{}) (entries []Input, err error)
 }
 

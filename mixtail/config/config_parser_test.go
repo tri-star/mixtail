@@ -3,14 +3,14 @@ package config_test
 
 import (
 	"testing"
-	"github.com/tri-star/mixtail/config"
-	"github.com/tri-star/mixtail/ext"
-	"github.com/tri-star/mixtail/ext/input/extssh"
+	"github.com/tri-star/mixtail/mixtail/config"
+	"github.com/tri-star/mixtail/lib"
+	"github.com/tri-star/mixtail/mixtail/ext/input/extssh"
 )
 
 func TestParse(t *testing.T) {
 
-	extensionManager := ext.NewExtensionManager()
+	extensionManager := lib.NewExtensionManager()
 	extensionManager.RegisterExtension(extssh.NewInputConfigParser())
 
 	cp := config.NewConfigParser(extensionManager)

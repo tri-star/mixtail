@@ -3,8 +3,8 @@ package extssh_test
 import (
 	"testing"
 	"gopkg.in/yaml.v2"
-	"github.com/tri-star/mixtail/config"
-	"github.com/tri-star/mixtail/ext/input/extssh"
+	"github.com/tri-star/mixtail/mixtail/config"
+	"github.com/tri-star/mixtail/mixtail/ext/input/extssh"
 )
 
 

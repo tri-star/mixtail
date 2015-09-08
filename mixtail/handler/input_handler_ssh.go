@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"fmt"
-	"github.com/tri-star/mixtail/ext/input/extssh"
+	"github.com/tri-star/mixtail/mixtail/ext/input/extssh"
 )
 
 type SshHandler struct{

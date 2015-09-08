@@ -2,7 +2,7 @@ package extssh
 
 import (
 	"errors"
-	"github.com/tri-star/mixtail/config"
+	"github.com/tri-star/mixtail/mixtail/config"
 )
 
 const (

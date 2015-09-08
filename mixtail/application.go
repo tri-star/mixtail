@@ -1,16 +1,15 @@
-package app
+package mixtail
 import (
 	"fmt"
-	"github.com/tri-star/mixtail/config"
-	"github.com/tri-star/mixtail/handler"
+	"github.com/tri-star/mixtail/mixtail/config"
+	"github.com/tri-star/mixtail/mixtail/handler"
 	"log"
 	"flag"
 	"os"
 	"errors"
 	"bytes"
 	"path/filepath"
-	"github.com/tri-star/mixtail/ext"
-	"github.com/tri-star/mixtail/ext/input/extssh"
+	"github.com/tri-star/mixtail/lib"
 )
 
 // Application class.
@@ -20,7 +19,7 @@ type Application struct {
 	config *config.Config
 	logFile *os.File
 
-	extensionManager *ext.ExtensionManager
+	extensionManager *lib.ExtensionManager
 }
 
 type StartupOptions struct {
@@ -38,17 +37,11 @@ const (
 const DEFAULT_CONFIG_FILE_NAME="config.yml"
 
 
-var app *Application
-
-
 // Returns Application singleton instance.
-func GetInstance() *Application {
-	if(app != nil) {
-		return app
-	}
-	app = new(Application)
+func NewApplication(em *lib.ExtensionManager) *Application {
+	app := new(Application)
 	app.lineDelimiter = []byte("\n")
-	app.extensionManager = ext.NewExtensionManager()
+	app.extensionManager = em
 	return app
 }
 
@@ -146,16 +139,6 @@ func (a *Application) loadConfig(configPath string) (c *config.Config, err error
 }
 
 
-func (a *Application) InitExtensions() {
-	//SSH Config
-	sshConfigParser := extssh.NewInputConfigParser()
-	a.extensionManager.RegisterExtension(sshConfigParser)
-
-	//SSH Handler
-
-}
-
-
 func (a *Application) printVersionCommand(options *StartupOptions) {
 	fmt.Println(Version)
 }
@@ -205,9 +188,6 @@ log:
 // Open input handlers and read them output until all input handler ends.
 func (a *Application) mainCommand(options *StartupOptions) {
 	var err error
-
-	//Setup extensions.
-	a.InitExtensions()
 
 	a.config, err = a.loadConfig(options.ConfigFile)
 	if err != nil {

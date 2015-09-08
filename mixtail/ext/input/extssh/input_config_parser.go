@@ -1,7 +1,7 @@
 package extssh
 
 import (
-	"github.com/tri-star/mixtail/config"
+	"github.com/tri-star/mixtail/mixtail/config"
 	"errors"
 )
 

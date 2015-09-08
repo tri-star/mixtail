@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/tri-star/mixtail/app"
+	"github.com/tri-star/mixtail/mixtail"
 )
 
 func main() {
 
-	var application *app.Application
+	var application *mixtail.Application
 
-	application = app.GetInstance()
+	application = mixtail.GetInstance()
 	application.Run()
 }

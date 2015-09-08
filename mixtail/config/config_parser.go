@@ -5,19 +5,19 @@ import (
 
 	"errors"
 	"io/ioutil"
-	"github.com/tri-star/mixtail/ext"
+	"github.com/tri-star/mixtail/lib"
 )
 
 // ConfigParser is parse YAML data and populate it into Config object.
 type ConfigParser struct {
 
 	config *Config
-	extensionManager *ext.ExtensionManager
+	extensionManager *lib.ExtensionManager
 }
 
 
 // Returns new ConfigParser.
-func NewConfigParser(extensionManager *ext.ExtensionManager) (cp *ConfigParser) {
+func NewConfigParser(extensionManager *lib.ExtensionManager) (cp *ConfigParser) {
 	cp = new(ConfigParser)
 	cp.config = NewConfig()
 	cp.extensionManager = extensionManager

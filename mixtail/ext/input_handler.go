@@ -1,11 +1,4 @@
-package handler
-
-import (
-	"errors"
-	"github.com/tri-star/mixtail/config"
-	"github.com/tri-star/mixtail/ext/input/extdummy"
-	"github.com/tri-star/mixtail/ext/input/extssh"
-)
+package ext
 
 const (
 	INPUT_STATE_NOT_STARTED = iota
@@ -21,6 +14,17 @@ const (
 	INPUT_DATA_END
 )
 
+
+type InputHandler interface {
+	Name() string
+	Type() string
+	State() uint8
+	Error() error
+
+	ReadInput(ch chan InputData)
+}
+
+
 // InputData is used for communicate between
 // main thread and input handler's goroutine.
 type InputData struct {
@@ -32,16 +36,6 @@ type InputData struct {
 func NewInputData() *InputData {
 	i := new(InputData)
 	return i
-}
-
-
-type InputHandler interface {
-	Name() string
-	Type() string
-	State() uint8
-	Error() error
-
-	ReadInput(ch chan InputData)
 }
 
 type BaseHandler struct {
@@ -68,23 +62,4 @@ func (b *BaseHandler) Error() error {
 }
 
 func (b *BaseHandler) ReadInput(ch chan *InputData) {
-}
-
-// Returns new InputHandler.
-// This funtion is just factory method of InputHandler.
-func NewInputHandler(c config.Input) (i InputHandler, e error) {
-	i = nil
-	e = nil
-	switch(c.GetType()) {
-	case extdummy.INPUT_CONFIG_TYPE:
-		config := c.(*extdummy.InputConfig)
-		i = NewDummyInputHandler(config)
-	case extssh.INPUT_CONFIG_TYPE:
-		config := c.(*extssh.InputConfig)
-		i = NewSshHandler(config)
-	default:
-		e = errors.New("Unknown input type:" + c.GetType())
-	}
-
-	return
 }

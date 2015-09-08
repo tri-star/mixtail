@@ -2,9 +2,9 @@ package handler_test
 
 import(
 	"testing"
-	"github.com/tri-star/mixtail/config"
-	"github.com/tri-star/mixtail/ext/input/extdummy"
-	"github.com/tri-star/mixtail/handler"
+	"github.com/tri-star/mixtail/mixtail/config"
+	"github.com/tri-star/mixtail/mixtail/ext/input/extdummy"
+	"github.com/tri-star/mixtail/mixtail/handler"
 )
 
 func TestInputHandler(t *testing.T) {
