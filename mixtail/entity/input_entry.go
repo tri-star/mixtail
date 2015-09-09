@@ -1,33 +1,27 @@
-package config
+package entity
 import (
 	"errors"
 )
 
-// Input data types.
-const(
-	INPUT_TYPE_DUMMY = "dummy"
-	INPUT_TYPE_SSH = "ssh"
-)
-
-// Input is common interface of input config.
-// It is correspond to an entry of "input" section of YAML config.
-type Input interface {
+// InputEntry is common interface of input config.
+// It is corresponding to an entry of "input" section of YAML config.
+type InputEntry interface {
 	GetName() string
 	GetType() string
 
 	BuildFromData(data map[interface{}]interface{}) (err error)
 }
 
-type InputBase struct {
+type InputEntryBase struct {
 	Name string
 	Type string
 }
 
-func (i *InputBase) GetName() string {
+func (i *InputEntryBase) GetName() string {
 	return i.Name
 }
 
-func (i *InputBase) GetType() string {
+func (i *InputEntryBase) GetType() string {
 	return i.Type
 }
 
@@ -37,7 +31,7 @@ func (i *InputBase) GetType() string {
 //
 // This method handles common initialization process.
 // All sub classes have to call this method.
-func (i *InputBase) BuildFromData(data map[interface{}]interface{}) (err error) {
+func (i *InputEntryBase) BuildFromData(data map[interface{}]interface{}) (err error) {
 	var ok bool
 	i.Name, ok = data["name"].(string)
 	if !ok {

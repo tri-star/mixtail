@@ -1,13 +1,16 @@
 package main
 
 import (
-	"github.com/tri-star/mixtail/app"
+	"github.com/tri-star/mixtail/mixtail"
+	"github.com/tri-star/mixtail/lib"
+	"github.com/tri-star/mixtail/mixtail/ext/extssh"
 )
 
 func main() {
 
-	var application *app.Application
+	extensionManager := lib.NewExtensionManager()
+	extssh.NewExtension().InstallExtensionPoints(extensionManager)
 
-	application = app.GetInstance()
+	application := mixtail.NewApplication(extensionManager)
 	application.Run()
 }

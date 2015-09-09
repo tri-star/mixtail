@@ -1,16 +1,15 @@
-package config_test
+package extssh_test
 
 
 import (
 	"testing"
 	"gopkg.in/yaml.v2"
-	"github.com/tri-star/mixtail/config"
+	"github.com/tri-star/mixtail/mixtail/ext/extssh"
+	"github.com/tri-star/mixtail/mixtail/entity"
 )
 
 
-func TestCreateConfigFromData(t *testing.T) {
-
-	c := config.NewConfig()
+func TestCreateEntitiesFromData(t *testing.T) {
 
 	yamlString := []byte(`input:
   logA:
@@ -44,8 +43,9 @@ func TestCreateConfigFromData(t *testing.T) {
 		return
 	}
 
-	var entries []*config.InputSsh
-	var tempEntries []*config.InputSsh
+	var entries []entity.InputEntry
+	var tempEntries []entity.InputEntry
+	inputEntryParser := extssh.NewInputEntryParser()
 	for name, inputEntry := range inputSection {
 		input, ok := inputEntry.(map[interface{}]interface{})
 		if !ok {
@@ -54,7 +54,12 @@ func TestCreateConfigFromData(t *testing.T) {
 			return
 		}
 
-		tempEntries, err = config.CreateSshConfigFromData(c, name.(string), input)
+		tempEntries, err = inputEntryParser.CreateInputEntriesFromData(name.(string), input)
+		if err != nil {
+			t.Log("Failed to parse input entry.")
+			t.Fail()
+			return
+		}
 		entries = append(entries, tempEntries...)
 	}
 
@@ -71,7 +76,7 @@ func TestCreateConfigFromData(t *testing.T) {
 	}
 
 	for i, expected := range expects {
-		entry := entries[i]
+		entry := entries[i].(*extssh.InputEntry)
 
 		if entry.Host != expected["host"] {
 			t.Logf("Host is not expected. index=%d: value=%s", i, entry.Host)

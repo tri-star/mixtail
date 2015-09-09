@@ -1,22 +1,26 @@
-package app
+package mixtail
 import (
 	"fmt"
-	"github.com/tri-star/mixtail/config"
-	"github.com/tri-star/mixtail/handler"
 	"log"
 	"flag"
 	"os"
 	"errors"
 	"bytes"
 	"path/filepath"
+	"github.com/tri-star/mixtail/lib"
+	"github.com/tri-star/mixtail/mixtail/entity"
+	"github.com/tri-star/mixtail/mixtail/service"
+	"github.com/tri-star/mixtail/mixtail/ext"
 )
 
 // Application class.
 type Application struct {
 
 	lineDelimiter []byte
-	config *config.Config
+	config *entity.Config
 	logFile *os.File
+
+	extensionManager *lib.ExtensionManager
 }
 
 type StartupOptions struct {
@@ -34,16 +38,11 @@ const (
 const DEFAULT_CONFIG_FILE_NAME="config.yml"
 
 
-var app *Application
-
-
 // Returns Application singleton instance.
-func GetInstance() *Application {
-	if(app != nil) {
-		return app
-	}
-	app = new(Application)
+func NewApplication(em *lib.ExtensionManager) *Application {
+	app := new(Application)
 	app.lineDelimiter = []byte("\n")
+	app.extensionManager = em
 	return app
 }
 
@@ -129,14 +128,9 @@ func (a *Application) parseStartupOptions(args []string) (options *StartupOption
 
 
 // Load config file(YAML) and populate it into config.Config.
-func (a *Application) loadConfig(configPath string) (c *config.Config, err error) {
-	configParser := config.NewConfigParser()
-	err = configParser.ParseFromFile(configPath)
-	if err != nil {
-		return
-	}
-
-	c = configParser.GetResult()
+func (a *Application) loadConfig(configPath string) (c *entity.Config, err error) {
+	configService := service.NewConfig(a.extensionManager)
+	c, err = configService.ParseFromFile(configPath)
 	return
 }
 
@@ -190,6 +184,7 @@ log:
 // Open input handlers and read them output until all input handler ends.
 func (a *Application) mainCommand(options *StartupOptions) {
 	var err error
+
 	a.config, err = a.loadConfig(options.ConfigFile)
 	if err != nil {
 		log.Println(err.Error())
@@ -205,19 +200,22 @@ func (a *Application) mainCommand(options *StartupOptions) {
 		}
 	}
 
+
+
 	//Create output channel.
 	//All input handler communicate with this channel.
-	outputData := make(chan handler.InputData, 0)
+	outputData := make(chan entity.InputData, 0)
 
 	//Initialize input handlers.
-	inputHandlers := make(map[string]handler.InputHandler)
+	inputHandlers := make(map[string]ext.InputHandler)
 	endFlagList := make(map[string]bool)
-	for _, inputConfig := range a.config.Inputs {
-		inputHandler, err := handler.NewInputHandler(inputConfig)
-		if err != nil {
-			panic(fmt.Sprintf("error: %s, message: %s", inputConfig.GetName(), err.Error()))
+	for _, inputEntry := range a.config.InputEntries {
+		inputHandlerFactory, found := a.extensionManager.GetExtensionPoint(ext.POINT_INPUT_HANDLER_FACTORY, inputEntry.GetType())
+		if !found {
+			panic(fmt.Sprintf("invalid input handler: %s", inputEntry.GetType()))
 		}
-		inputHandlers[inputConfig.GetName()] = inputHandler
+		inputHandler := inputHandlerFactory.(ext.InputHandlerFactory).NewInputHandler(inputEntry)
+		inputHandlers[inputHandler.GetName()] = inputHandler
 	}
 
 	//Start listen.
@@ -229,12 +227,12 @@ func (a *Application) mainCommand(options *StartupOptions) {
 
 	//Wait outputData channel receive a data.
 	//This loop continues until all input handler exits.
-	var inputData handler.InputData
+	var inputData entity.InputData
 	allEndFlag := false
 	for {
 		inputData = <- outputData
 
-		if inputData.State == handler.INPUT_DATA_END {
+		if inputData.State == entity.INPUT_DATA_END {
 			endFlagList[inputData.Name] = true
 		}
 
