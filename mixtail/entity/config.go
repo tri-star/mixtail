@@ -1,9 +1,9 @@
-package config
+package entity
 
 
 type Config struct{
 
-	Inputs []Input
+	InputEntries []InputEntry
 
 	Logging bool
 	LogPath string
@@ -13,7 +13,7 @@ type Config struct{
 func NewConfig() *Config {
 	config := new(Config)
 
-	config.Inputs = make([]Input, 0)
+	config.InputEntries = make([]InputEntry, 0)
 	config.Logging = false
 
 	return config

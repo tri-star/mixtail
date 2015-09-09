@@ -1,53 +1,67 @@
-package handler
+package extssh
 
 import (
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"log"
 	"fmt"
-	"github.com/tri-star/mixtail/mixtail/ext/input/extssh"
+	"github.com/tri-star/mixtail/mixtail/ext"
+	"github.com/tri-star/mixtail/mixtail/entity"
+	"github.com/tri-star/mixtail/lib"
 )
 
-type SshHandler struct{
-	*BaseHandler
 
-	config *extssh.InputConfig
+type InputHandlerFactory struct {
+	*lib.BaseExtensionPoint
 }
 
-func NewSshHandler(c *extssh.InputConfig) *SshHandler {
-	b := new(BaseHandler)
-	s := new(SshHandler)
-	s.BaseHandler = b
-	s.config = c
-	s.state = INPUT_STATE_NOT_STARTED
-	return s
+func NewInputHandlerFactory() (ihf *InputHandlerFactory){
+	ihf = new(InputHandlerFactory)
+	ihf.BaseExtensionPoint = new(lib.BaseExtensionPoint)
+	ihf.Name = EXTENSION_NAME
+	return
 }
 
-func (s *SshHandler) Name() string {
-	return s.config.Name
+func (ihf *InputHandlerFactory) NewInputHandler(ie entity.InputEntry) ext.InputHandler {
+	ih := new(InputHandler)
+	ih.BaseHandler = new(ext.BaseHandler)
+	ih.config = ie.(*InputEntry)
+	ih.State = ext.INPUT_STATE_NOT_STARTED
+	return ih
 }
 
-func (s *SshHandler) ReadInput(ch chan InputData) {
+
+type InputHandler struct{
+	*ext.BaseHandler
+
+	config *InputEntry
+}
+
+func (ih *InputHandler) GetName() string {
+	return ih.config.Name
+}
+
+func (ih *InputHandler) ReadInput(ch chan entity.InputData) {
 	var err error
 
-	input := NewInputData()
-	input.Name = s.config.Host + ": " + s.config.Name
-	input.State = INPUT_DATA_CONTINUE
+	input := entity.NewInputData()
+	input.Name = ih.config.Name
+	input.State = entity.INPUT_DATA_CONTINUE
 
 	defer func() {
 		if err != nil {
-			input.State = INPUT_DATA_END
-			s.state = INPUT_STATE_ERROR
+			input.State = entity.INPUT_DATA_END
+			ih.State = ext.INPUT_STATE_ERROR
 			ch <- *input
 			log.Printf("Handler exited with error: %s\n", err.Error())
 		}
 	}()
 
-	session, err := s.createSession(s.config)
+	session, err := ih.createSession(ih.config)
 	if err != nil {
 		return
 	}
-	s.state = INPUT_STATE_RUNNING
+	ih.State = ext.INPUT_STATE_RUNNING
 
 	//Set  a pipe for session's output.
 	//Remote session will blocked(sleep) if pipe is full.
@@ -69,16 +83,16 @@ func (s *SshHandler) ReadInput(ch chan InputData) {
 				break
 			} else {
 				input.Data = buffer[:readBytes]
-				input.State = INPUT_DATA_CONTINUE
+				input.State = entity.INPUT_DATA_CONTINUE
 			}
 			ch <- *input
 		}
 
-		s.state = INPUT_STATE_DONE
+		ih.State = ext.INPUT_STATE_DONE
 		if err != nil {
-			s.state = INPUT_STATE_ERROR
+			ih.State = ext.INPUT_STATE_ERROR
 		} else {
-			input.State = INPUT_DATA_END
+			input.State = entity.INPUT_DATA_END
 		}
 		input.Data = nil
 
@@ -91,19 +105,19 @@ func (s *SshHandler) ReadInput(ch chan InputData) {
 	}()
 
 	//Start session.
-	if err := session.Run(s.config.Command); err != nil {
+	if err := session.Run(ih.config.Command); err != nil {
 		return
 	}
 
-	s.state = INPUT_STATE_DONE
+	ih.State = ext.INPUT_STATE_DONE
 }
 
-func (s *SshHandler) createSession(config *extssh.InputConfig) (session *ssh.Session, err error) {
+func (ih *InputHandler) createSession(config *InputEntry) (session *ssh.Session, err error) {
 
 	var authMethod []ssh.AuthMethod
 	var key *ssh.Signer
 	if(config.Identity != "") {
-		key, err = s.parsePrivateKey(config.Identity)
+		key, err = ih.parsePrivateKey(config.Identity)
 		if err != nil {
 			return
 		}
@@ -130,7 +144,7 @@ func (s *SshHandler) createSession(config *extssh.InputConfig) (session *ssh.Ses
 	return
 }
 
-func (s *SshHandler) parsePrivateKey(keyPath string) (key *ssh.Signer, err error) {
+func (ih *InputHandler) parsePrivateKey(keyPath string) (key *ssh.Signer, err error) {
 	buff, err := ioutil.ReadFile(keyPath)
 	if err != nil {
 		return

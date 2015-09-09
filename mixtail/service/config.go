@@ -1,41 +1,33 @@
-package config
-
+package service
 import (
-	"gopkg.in/yaml.v2"
-
-	"errors"
-	"io/ioutil"
 	"github.com/tri-star/mixtail/lib"
+	"io/ioutil"
+	"gopkg.in/yaml.v2"
+	"errors"
+	"github.com/tri-star/mixtail/mixtail/entity"
+	"github.com/tri-star/mixtail/mixtail/ext"
 )
 
-// ConfigParser is parse YAML data and populate it into Config object.
-type ConfigParser struct {
 
-	config *Config
+type Config struct {
 	extensionManager *lib.ExtensionManager
 }
 
 
-// Returns new ConfigParser.
-func NewConfigParser(extensionManager *lib.ExtensionManager) (cp *ConfigParser) {
-	cp = new(ConfigParser)
-	cp.config = NewConfig()
-	cp.extensionManager = extensionManager
+func NewConfig(em *lib.ExtensionManager) (c *Config) {
+	c = new(Config)
+	c.extensionManager = em
 	return
 }
 
-// Returns parse result(Config).
-func (cp *ConfigParser) GetResult() *Config {
-	return cp.config
-}
 
 // Parse data from given file path.
-func (cp *ConfigParser) ParseFromFile(path string) (err error) {
+func (c *Config) ParseFromFile(path string) (conf *entity.Config, err error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return
 	}
-	err = cp.Parse(data)
+	conf, err = c.Parse(data)
 	if err != nil {
 		return
 	}
@@ -43,29 +35,32 @@ func (cp *ConfigParser) ParseFromFile(path string) (err error) {
 }
 
 // Parse data from given byte slices.
-func (cp *ConfigParser) Parse(data []byte) (err error) {
+func (c *Config) Parse(data []byte) (conf *entity.Config, err error) {
 	var parseResult interface{}
 	err = yaml.Unmarshal(data, &parseResult)
 	if err != nil{
-		return err
+		return
 	}
+	conf = entity.NewConfig()
 
 	// Get "input" section.
 	inputSettingSection, ok := parseResult.(map[interface{}]interface{})["input"]
 	if !ok {
-		return errors.New("'input' section not found.")
+		err = errors.New("'input' section not found.")
+		return
 	}
 	inputSettingEntries, _ := inputSettingSection.(map[interface{}]interface{})
 	for name, entry := range inputSettingEntries {
-		err = cp.parseInputSectionEntry(name.(string), entry.(map[interface{}]interface{}))
+		err = c.parseInputSectionEntry(conf, name.(string), entry.(map[interface{}]interface{}))
 		if err != nil {
 			return
 		}
+
 	}
 
 	logSection, ok := parseResult.(map[interface{}]interface{})["log"].(map[interface{}]interface{})
 	if ok {
-		err = cp.parseLogSection(cp.config, logSection)
+		err = c.parseLogSection(conf, logSection)
 		if err != nil {
 			return
 		}
@@ -75,41 +70,41 @@ func (cp *ConfigParser) Parse(data []byte) (err error) {
 }
 
 // Internal function that parses "input" section entries.
-func (cp *ConfigParser) parseInputSectionEntry(name string, entry map[interface{}]interface{}) (err error) {
+func (c *Config) parseInputSectionEntry(conf *entity.Config, name string, entry map[interface{}]interface{}) (err error) {
 	typeName, ok := entry["type"].(string)
 	if !ok {
 		err = errors.New(name + ": " + "'type' is not specified")
 		return
 	}
 
-	extension, found := cp.extensionManager.GetExtension(EXTENSION_TYPE_INPUT_CONFIG_PARSER + "-" + typeName)
+	extension, found := c.extensionManager.GetExtensionPoint(ext.POINT_INPUT_CONFIG_PARSER, typeName)
 	if !found {
 		err = errors.New(name + ": " + "invalid type '" + typeName + "' specified.")
 		return
 	}
-	inputConfigs, err := extension.(InputConfigParser).CreateInputConfigFromData(name, entry)
+	inputEntries, err := extension.(ext.InputEntryParser).CreateInputEntriesFromData(name, entry)
 	if err != nil {
 		return
 	}
-	cp.config.Inputs = append(cp.config.Inputs, inputConfigs...)
+	conf.InputEntries = append(conf.InputEntries, inputEntries...)
 	return
 }
 
 
 // Parse "log" section.
-func (cp *ConfigParser) parseLogSection(c *Config, section map[interface{}]interface{}) (err error) {
+func (c *Config) parseLogSection(conf *entity.Config, section map[interface{}]interface{}) (err error) {
 	logging, ok := section["logging"].(bool)
 	if !ok || !logging {
-		c.Logging = false
+		conf.Logging = false
 		return
 	}
-	c.Logging = true
+	conf.Logging = true
 
 	logPath, ok := section["path"].(string)
 	if !ok || len(logPath) == 0 {
 		err = errors.New("'path' must be specified.")
 		return
 	}
-	c.LogPath = logPath
+	conf.LogPath = logPath
 	return
 }

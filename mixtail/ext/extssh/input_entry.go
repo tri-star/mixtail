@@ -2,16 +2,13 @@ package extssh
 
 import (
 	"errors"
-	"github.com/tri-star/mixtail/mixtail/config"
+	"github.com/tri-star/mixtail/mixtail/entity"
 )
 
-const (
-	INPUT_CONFIG_TYPE = "ssh"
-)
 
-// ssh.InputConfig implements config entry that uses ssh.
-type InputConfig struct {
-	*config.InputBase
+// extssh.InputEntry implements config entry that uses ssh.
+type InputEntry struct {
+	*entity.InputEntryBase
 
 	Host string
 	Port uint16
@@ -21,17 +18,21 @@ type InputConfig struct {
 	Command string
 }
 
-// Returns new InputSsh.
-func NewInputConfig() *InputConfig {
-	b := new(config.InputBase)
-	i := new(InputConfig)
-	i.InputBase = b
+// Returns new extssh.InputEntry.
+func NewInputEntry() *InputEntry {
+	i := new(InputEntry)
+	i.InputEntryBase = new(entity.InputEntryBase)
 	return i
 }
 
+func (ie *InputEntry) GetName() string {
+	return ie.Host + ":" + ie.Name
+}
+
+
 // Initialize its self by given data.
-func (ic *InputConfig) BuildFromData(data map[interface{}]interface{}) (err error) {
-	err = ic.InputBase.BuildFromData(data)
+func (ic *InputEntry) BuildFromData(data map[interface{}]interface{}) (err error) {
+	err = ic.InputEntryBase.BuildFromData(data)
 	if err != nil {
 		return
 	}

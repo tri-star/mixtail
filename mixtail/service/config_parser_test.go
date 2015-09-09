@@ -1,19 +1,20 @@
-package config_test
+package service_test
 
 
 import (
 	"testing"
-	"github.com/tri-star/mixtail/mixtail/config"
 	"github.com/tri-star/mixtail/lib"
-	"github.com/tri-star/mixtail/mixtail/ext/input/extssh"
+	"github.com/tri-star/mixtail/mixtail/ext/extssh"
+	"github.com/tri-star/mixtail/mixtail/service"
+	"github.com/tri-star/mixtail/mixtail/ext"
 )
 
 func TestParse(t *testing.T) {
 
 	extensionManager := lib.NewExtensionManager()
-	extensionManager.RegisterExtension(extssh.NewInputConfigParser())
+	extensionManager.RegisterExtensionPoint(ext.POINT_INPUT_CONFIG_PARSER, extssh.NewInputEntryParser())
 
-	cp := config.NewConfigParser(extensionManager)
+	cs := service.NewConfig(extensionManager)
 
 	yaml := []byte(`
 input:
@@ -30,20 +31,18 @@ log:
   path: /tmp/test.log
 `)
 
-	err := cp.Parse(yaml)
+	conf, err := cs.Parse(yaml)
 	if err != nil {
 		t.Logf(err.Error())
 		t.Fail()
 	}
 
-	conf := cp.GetResult()
-
-	if len(conf.Inputs) != 2 {
-		t.Logf("input handler count. expected: 1, actual: %d", len(conf.Inputs))
+	if len(conf.InputEntries) != 2 {
+		t.Logf("input handler count. expected: 1, actual: %d", len(conf.InputEntries))
 		t.Fail()
 	}
 
-	inputSsh := conf.Inputs[0].(*extssh.InputConfig)
+	inputSsh := conf.InputEntries[0].(*extssh.InputEntry)
 	if inputSsh.Name != "test01" {
 		t.Logf("input handler name not matched. expected: test01, actual: %s", inputSsh.Name)
 		t.Fail()
@@ -53,7 +52,7 @@ log:
 		t.Fail()
 	}
 
-	inputSsh2 := conf.Inputs[1].(*extssh.InputConfig)
+	inputSsh2 := conf.InputEntries[1].(*extssh.InputEntry)
 	if inputSsh2.Name != "test01" {
 		t.Logf("input handler name not matched. expected: test01, actual: %s", inputSsh2.Name)
 		t.Fail()

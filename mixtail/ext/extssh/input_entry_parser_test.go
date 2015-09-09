@@ -1,15 +1,14 @@
 package extssh_test
 
-
 import (
 	"testing"
 	"gopkg.in/yaml.v2"
-	"github.com/tri-star/mixtail/mixtail/config"
-	"github.com/tri-star/mixtail/mixtail/ext/input/extssh"
+	"github.com/tri-star/mixtail/mixtail/ext/extssh"
+	"github.com/tri-star/mixtail/mixtail/entity"
 )
 
 
-func TestCreateConfigFromData(t *testing.T) {
+func TestCreateInputConfigFromData(t *testing.T) {
 
 	yamlString := []byte(`input:
   logA:
@@ -36,30 +35,16 @@ func TestCreateConfigFromData(t *testing.T) {
 		return
 	}
 
-	inputSection, ok := yamlData.(map[interface{}]interface{})["input"].(map[interface{}]interface{})
-	if !ok {
-		t.Log("Failed to find input section.")
-		t.Fail()
-		return
-	}
+	inputSection := yamlData.(map[interface{}]interface{})["input"].(map[interface{}]interface{})
 
-	var entries []config.Input
-	var tempEntries []config.Input
-	inputConfigParser := extssh.NewInputConfigParser()
+	inputEntryParser := extssh.NewInputEntryParser()
+
+	var entries []entity.InputEntry
+	var tempEntries []entity.InputEntry
 	for name, inputEntry := range inputSection {
-		input, ok := inputEntry.(map[interface{}]interface{})
-		if !ok {
-			t.Log("Failed to find input entry.")
-			t.Fail()
-			return
-		}
+		input := inputEntry.(map[interface{}]interface{})
 
-		tempEntries, err = inputConfigParser.CreateInputConfigFromData(name.(string), input)
-		if err != nil {
-			t.Log("Failed to parse input entry.")
-			t.Fail()
-			return
-		}
+		tempEntries, err = inputEntryParser.CreateInputEntriesFromData(name.(string), input)
 		entries = append(entries, tempEntries...)
 	}
 
@@ -76,7 +61,7 @@ func TestCreateConfigFromData(t *testing.T) {
 	}
 
 	for i, expected := range expects {
-		entry := entries[i].(*extssh.InputConfig)
+		entry := entries[i].(*extssh.InputEntry)
 
 		if entry.Host != expected["host"] {
 			t.Logf("Host is not expected. index=%d: value=%s", i, entry.Host)

@@ -1,30 +1,23 @@
 package extssh
 
 import (
-	"github.com/tri-star/mixtail/mixtail/config"
 	"errors"
+	"github.com/tri-star/mixtail/lib"
+	"github.com/tri-star/mixtail/mixtail/entity"
 )
 
-const (
-	EXTENSION_TYPE = config.EXTENSION_TYPE_INPUT_CONFIG_PARSER + "-ssh"
-)
-
-type InputConfigParser struct {
-	*config.BaseInputConfigParser
+type InputEntryParser struct {
+	*lib.BaseExtensionPoint
 }
 
-func NewInputConfigParser() (icp *InputConfigParser) {
-	icp = new(InputConfigParser)
-	icp.BaseInputConfigParser = new(config.BaseInputConfigParser)
-	icp.Name = EXTENSION_TYPE
+func NewInputEntryParser() (iep *InputEntryParser) {
+	iep = new(InputEntryParser)
+	iep.BaseExtensionPoint = new(lib.BaseExtensionPoint)
+	iep.Name = EXTENSION_NAME
 	return
 }
 
-func (ic *InputConfigParser) GetName() string {
-	return ic.Name
-}
-
-func (ic *InputConfigParser) CreateInputConfigFromData(name string, data map[interface{}]interface{}) (inputConfigs []config.Input, err error) {
+func (iep *InputEntryParser) CreateInputEntriesFromData(name string, data map[interface{}]interface{}) (inputEntries []entity.InputEntry, err error) {
 	hosts := make([]string, 0)
 	//hostパラメータを調べる。1件か、配列か？
 	hostAsString, ok := data["host"].(string)
@@ -46,10 +39,10 @@ func (ic *InputConfigParser) CreateInputConfigFromData(name string, data map[int
 
 	//host件数分ループ
 	workData := make(map[interface{}]interface{})
-	inputConfigs = make([]config.Input, 0)
+	inputEntries = make([]entity.InputEntry, 0)
 
 	for _, hostName := range hosts {
-		entry := NewInputConfig()
+		entry := NewInputEntry()
 
 		for key, value := range data {
 			workData[key] = value
@@ -61,7 +54,7 @@ func (ic *InputConfigParser) CreateInputConfigFromData(name string, data map[int
 			return
 		}
 
-		inputConfigs = append(inputConfigs, entry)
+		inputEntries = append(inputEntries, entry)
 	}
 	return
 }

@@ -1,4 +1,9 @@
 package ext
+import (
+	"github.com/tri-star/mixtail/mixtail/entity"
+	"github.com/tri-star/mixtail/lib"
+)
+
 
 const (
 	INPUT_STATE_NOT_STARTED = iota
@@ -7,59 +12,46 @@ const (
 	INPUT_STATE_ERROR
 )
 
-// Input data state.
-// Which indicates whether the data is ended or not.
-const (
-	INPUT_DATA_CONTINUE = iota
-	INPUT_DATA_END
-)
+
+type InputHandlerFactory interface {
+	lib.ExtensionPoint
+	NewInputHandler(entity.InputEntry) InputHandler
+}
 
 
 type InputHandler interface {
-	Name() string
-	Type() string
-	State() uint8
-	Error() error
+	GetName() string
+	GetType() string
+	GetState() uint8
+	GetError() error
 
-	ReadInput(ch chan InputData)
+	ReadInput(ch chan entity.InputData)
 }
 
 
-// InputData is used for communicate between
-// main thread and input handler's goroutine.
-type InputData struct {
-	Name string
-	State uint8
-	Data []byte
-}
-
-func NewInputData() *InputData {
-	i := new(InputData)
-	return i
-}
 
 type BaseHandler struct {
-	typeName string
-	state uint8
-	err error
+	TypeName string
+	State uint8
+	Err error
 }
 
 
-func (b *BaseHandler) Name() string {
+func (b *BaseHandler) GetName() string {
 	return ""
 }
 
-func (b *BaseHandler) Type() string {
-	return b.typeName
+func (b *BaseHandler) GetType() string {
+	return b.TypeName
 }
 
-func (b *BaseHandler) State() uint8 {
-	return b.state
+func (b *BaseHandler) GetState() uint8 {
+	return b.State
 }
 
-func (b *BaseHandler) Error() error {
-	return b.err
+func (b *BaseHandler) GetError() error {
+	return b.Err
 }
 
-func (b *BaseHandler) ReadInput(ch chan *InputData) {
+func (b *BaseHandler) ReadInput(ch chan *entity.InputData) {
 }

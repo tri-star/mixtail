@@ -100,8 +100,8 @@ By default, `mixtail` is installed on $GOPATH/bin.
 ## Road map
 
 * Make user ID, password, identity could define external file(~/.mixtail.yml) or pass via command line. 
-* Add option for prepend time to each line.
-* Keyword highlighting(not syntax highlighting).
+* Add option for prepend time to each log line.
+* Keyword highlighting.
 * Support more input types.
 
 ## Contribution
