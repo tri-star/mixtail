@@ -82,7 +82,7 @@ func (c *Config) parseInputSectionEntry(conf *entity.Config, name string, entry 
 		err = errors.New(name + ": " + "invalid type '" + typeName + "' specified.")
 		return
 	}
-	inputEntries, err := extension.(ext.InputEntryParser).CreateInputEntriesFromData(name, entry)
+	inputEntries, err := extension.(ext.InputEntryParser).CreateInputEntriesFromData(conf, name, entry)
 	if err != nil {
 		return
 	}

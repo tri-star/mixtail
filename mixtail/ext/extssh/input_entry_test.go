@@ -45,6 +45,7 @@ func TestCreateEntitiesFromData(t *testing.T) {
 
 	var entries []entity.InputEntry
 	var tempEntries []entity.InputEntry
+	config := entity.NewConfig()
 	inputEntryParser := extssh.NewInputEntryParser()
 	for name, inputEntry := range inputSection {
 		input, ok := inputEntry.(map[interface{}]interface{})
@@ -54,7 +55,7 @@ func TestCreateEntitiesFromData(t *testing.T) {
 			return
 		}
 
-		tempEntries, err = inputEntryParser.CreateInputEntriesFromData(name.(string), input)
+		tempEntries, err = inputEntryParser.CreateInputEntriesFromData(config, name.(string), input)
 		if err != nil {
 			t.Log("Failed to parse input entry.")
 			t.Fail()
@@ -86,8 +87,8 @@ func TestCreateEntitiesFromData(t *testing.T) {
 			t.Logf("Log name is not expected. index=%d: value=%s", i, entry.Name)
 			t.Fail()
 		}
-		if entry.User != expected["user"] {
-			t.Logf("user is not expected. index=%d: value=%s", i, entry.User)
+		if entry.Cred.User != expected["user"] {
+			t.Logf("user is not expected. index=%d: value=%s", i, entry.Cred.User)
 			t.Fail()
 		}
 	}

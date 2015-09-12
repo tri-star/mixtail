@@ -116,18 +116,18 @@ func (ih *InputHandler) createSession(config *InputEntry) (session *ssh.Session,
 
 	var authMethod []ssh.AuthMethod
 	var key *ssh.Signer
-	if(config.Identity != "") {
-		key, err = ih.parsePrivateKey(config.Identity)
+	if(!config.Cred.IsPasswordAuth()) {
+		key, err = ih.parsePrivateKey(config.Cred.Identity)
 		if err != nil {
 			return
 		}
 		authMethod = []ssh.AuthMethod{ssh.PublicKeys(*key),}
 	} else {
-		authMethod = []ssh.AuthMethod{ ssh.Password(config.Pass), }
+		authMethod = []ssh.AuthMethod{ ssh.Password(config.Cred.Pass), }
 	}
 
 	sshConfig := new(ssh.ClientConfig)
-	sshConfig.User = config.User
+	sshConfig.User = config.Cred.User
 	sshConfig.Auth = authMethod
 
 	port := uint16(22)

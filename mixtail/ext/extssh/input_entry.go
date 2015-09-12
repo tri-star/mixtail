@@ -12,9 +12,7 @@ type InputEntry struct {
 
 	Host string
 	Port uint16
-	User string
-	Pass string
-	Identity string
+	Cred *entity.Credential
 	Command string
 }
 
@@ -22,6 +20,7 @@ type InputEntry struct {
 func NewInputEntry() *InputEntry {
 	i := new(InputEntry)
 	i.InputEntryBase = new(entity.InputEntryBase)
+	i.Cred = entity.NewCredential()
 	return i
 }
 
@@ -31,42 +30,53 @@ func (ie *InputEntry) GetName() string {
 
 
 // Initialize its self by given data.
-func (ic *InputEntry) BuildFromData(data map[interface{}]interface{}) (err error) {
-	err = ic.InputEntryBase.BuildFromData(data)
+func (ie *InputEntry) BuildFromData(c *entity.Config, data map[interface{}]interface{}) (err error) {
+	err = ie.InputEntryBase.BuildFromData(c, data)
 	if err != nil {
 		return
 	}
 
 	var ok bool
-	ic.Host, ok = data["host"].(string)
+	ie.Host, ok = data["host"].(string)
 	if !ok {
-		err = errors.New(ic.Name + ": 'host' is not specified.")
+		err = errors.New(ie.Name + ": 'host' is not specified.")
 		return
 	}
-	ic.User, ok = data["user"].(string)
-	if !ok {
-		err = errors.New(ic.Name + ": 'user' is not specified.")
-		return
+	defaultCred := c.GetDefaultCredential(ie.Host)
+	ie.Cred.User, ok = data["user"].(string)
+	if !ok || ie.Cred.User == "" {
+		ie.Cred.User = defaultCred.User
+		if ie.Cred.User == "" {
+			err = errors.New(ie.Name + ": 'user' is not specified.")
+			return
+		}
 	}
-	ic.Command, ok = data["command"].(string)
+	ie.Command, ok = data["command"].(string)
 	if !ok {
-		err = errors.New(ic.Name + ": 'command' is not specified.")
+		err = errors.New(ie.Name + ": 'command' is not specified.")
 		return
 	}
 
 	//Optional fields
 	port, ok := data["port"].(uint16)
 	if ok {
-		ic.Port = port
+		ie.Port = port
 	}
 	pass, ok := data["pass"].(string)
 	if ok {
-		ic.Pass = pass
+		ie.Cred.Pass = pass
 	}
 	identity, ok := data["identity"].(string)
 	if ok {
-		ic.Identity = identity
+		ie.Cred.Identity = identity
 	}
 
+	if ie.Cred.Pass == "" && ie.Cred.Identity == "" {
+		ie.Cred.Pass = defaultCred.Pass
+		ie.Cred.Identity = defaultCred.Identity
+		if ie.Cred.Pass == "" && ie.Cred.Identity == "" {
+			err = errors.New("password or identity must be specified.")
+		}
+	}
 	return
 }

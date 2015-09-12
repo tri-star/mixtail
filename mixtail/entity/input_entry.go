@@ -9,7 +9,7 @@ type InputEntry interface {
 	GetName() string
 	GetType() string
 
-	BuildFromData(data map[interface{}]interface{}) (err error)
+	BuildFromData(c *Config, data map[interface{}]interface{}) (err error)
 }
 
 type InputEntryBase struct {
@@ -31,7 +31,7 @@ func (i *InputEntryBase) GetType() string {
 //
 // This method handles common initialization process.
 // All sub classes have to call this method.
-func (i *InputEntryBase) BuildFromData(data map[interface{}]interface{}) (err error) {
+func (i *InputEntryBase) BuildFromData(c *Config, data map[interface{}]interface{}) (err error) {
 	var ok bool
 	i.Name, ok = data["name"].(string)
 	if !ok {

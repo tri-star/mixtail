@@ -17,9 +17,8 @@ func NewInputEntryParser() (iep *InputEntryParser) {
 	return
 }
 
-func (iep *InputEntryParser) CreateInputEntriesFromData(name string, data map[interface{}]interface{}) (inputEntries []entity.InputEntry, err error) {
+func (iep *InputEntryParser) CreateInputEntriesFromData(config *entity.Config, name string, data map[interface{}]interface{}) (inputEntries []entity.InputEntry, err error) {
 	hosts := make([]string, 0)
-	//hostパラメータを調べる。1件か、配列か？
 	hostAsString, ok := data["host"].(string)
 	if ok {
 		hosts = append(hosts, hostAsString)
@@ -37,7 +36,6 @@ func (iep *InputEntryParser) CreateInputEntriesFromData(name string, data map[in
 		}
 	}
 
-	//host件数分ループ
 	workData := make(map[interface{}]interface{})
 	inputEntries = make([]entity.InputEntry, 0)
 
@@ -49,7 +47,7 @@ func (iep *InputEntryParser) CreateInputEntriesFromData(name string, data map[in
 		}
 		workData["name"] = name
 		workData["host"] = hostName
-		err = entry.BuildFromData(workData)
+		err = entry.BuildFromData(config, workData)
 		if err != nil {
 			return
 		}

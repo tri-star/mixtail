@@ -29,7 +29,7 @@ func NewInputEntryParser() (iep *InputEntryParser) {
 	return
 }
 
-func (iep *InputEntryParser) CreateInputEntriesFromData(name string, data map[interface{}]interface{}) (entries []entity.InputEntry, err error) {
+func (iep *InputEntryParser) CreateInputEntriesFromData(config *entity.Config, name string, data map[interface{}]interface{}) (entries []entity.InputEntry, err error) {
 	entry := NewInputEntry()
 	entry.Name = name
 	entries = append(entries, entry)

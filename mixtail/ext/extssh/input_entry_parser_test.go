@@ -41,10 +41,11 @@ func TestCreateInputConfigFromData(t *testing.T) {
 
 	var entries []entity.InputEntry
 	var tempEntries []entity.InputEntry
+	config := entity.NewConfig()
 	for name, inputEntry := range inputSection {
 		input := inputEntry.(map[interface{}]interface{})
 
-		tempEntries, err = inputEntryParser.CreateInputEntriesFromData(name.(string), input)
+		tempEntries, err = inputEntryParser.CreateInputEntriesFromData(config, name.(string), input)
 		entries = append(entries, tempEntries...)
 	}
 
@@ -71,8 +72,8 @@ func TestCreateInputConfigFromData(t *testing.T) {
 			t.Logf("Log name is not expected. index=%d: value=%s", i, entry.Name)
 			t.Fail()
 		}
-		if entry.User != expected["user"] {
-			t.Logf("user is not expected. index=%d: value=%s", i, entry.User)
+		if entry.Cred.User != expected["user"] {
+			t.Logf("user is not expected. index=%d: value=%s", i, entry.Cred.User)
 			t.Fail()
 		}
 	}
