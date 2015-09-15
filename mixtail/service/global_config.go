@@ -3,10 +3,12 @@ import (
 	"github.com/tri-star/mixtail/mixtail/entity"
 	"os"
 	"errors"
+	"io/ioutil"
+	"gopkg.in/yaml.v2"
 )
 
 
-const GLOBAL_CONFIG_FILE=".mixtail.yml"
+	const GLOBAL_CONFIG_FILE=".mixtail.yml"
 
 
 type GlobalConfig struct {
@@ -42,13 +44,27 @@ func (gc *GlobalConfig) GetFilePath() (filePath string, found bool) {
 	return "", false
 }
 
-func (gc *GlobalConfig) ParseFromFile(filePath string) (config *entity.Config, err error) {
+func (gc *GlobalConfig) ParseFromFile(filePath string, config *entity.Config) (err error) {
+	yamlBytes, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return
+	}
+
+	var yamlData map[interface{}]interface{}
+	err = yaml.Unmarshal(yamlBytes, &yamlData)
+	if err != nil {
+		return
+	}
+
+	err = gc.Parse(yamlData, config)
 	return
 }
 
-func (gc *GlobalConfig) Parse(data map[interface{}]interface{}) (config *entity.Config, err error) {
+func (gc *GlobalConfig) Parse(data map[interface{}]interface{}, config *entity.Config) (err error) {
 
-	config = entity.NewConfig()
+	if config == nil {
+		config = entity.NewConfig()
+	}
 
 	//Parse default section.
 	defaultSection, ok := data["default"].(map[interface{}]interface{})
@@ -69,17 +85,12 @@ func (gc *GlobalConfig) Parse(data map[interface{}]interface{}) (config *entity.
 				return
 			}
 			tmpCred = entity.NewCredential()
-			tmpCred.User = hostEntry["user"].(string)
-			tmpCred.Pass = hostEntry["pass"].(string)
-			tmpCred.Identity = hostEntry["identity"].(string)
+			tmpCred.User, ok = hostEntry["user"].(string)
+			tmpCred.Pass, ok = hostEntry["pass"].(string)
+			tmpCred.Identity, ok = hostEntry["identity"].(string)
 
 			config.Hosts[hostName.(string)] = tmpCred
 		}
 	}
-	return
-}
-
-
-func (gc *GlobalConfig) Merge(filePath string, config *entity.Config) (err error) {
 	return
 }

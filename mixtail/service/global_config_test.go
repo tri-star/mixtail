@@ -3,6 +3,7 @@ import (
 	"testing"
 	"github.com/tri-star/mixtail/mixtail/service"
 	"gopkg.in/yaml.v2"
+	"github.com/tri-star/mixtail/mixtail/entity"
 )
 
 
@@ -34,7 +35,8 @@ host:
 		return
 	}
 
-	config, err := globalConfigService.Parse(data)
+	config := entity.NewConfig()
+	err = globalConfigService.Parse(data, config)
 	if err != nil {
 		t.Log(err.Error())
 		t.Fail()

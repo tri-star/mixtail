@@ -128,9 +128,18 @@ func (a *Application) parseStartupOptions(args []string) (options *StartupOption
 
 
 // Load config file(YAML) and populate it into config.Config.
-func (a *Application) loadConfig(configPath string) (c *entity.Config, err error) {
+func (a *Application) loadConfig(configPath string, c *entity.Config) (err error) {
+	globalConfigService := service.NewGlobalConfig()
+	globalConfigPath, found := globalConfigService.GetFilePath()
+	if found {
+		err = globalConfigService.ParseFromFile(globalConfigPath, c)
+		if err != nil {
+			return
+		}
+	}
+
 	configService := service.NewConfig(a.extensionManager)
-	c, err = configService.ParseFromFile(configPath)
+	err = configService.ParseFromFile(configPath, c)
 	return
 }
 
@@ -185,7 +194,8 @@ log:
 func (a *Application) mainCommand(options *StartupOptions) {
 	var err error
 
-	a.config, err = a.loadConfig(options.ConfigFile)
+	a.config = entity.NewConfig()
+	err = a.loadConfig(options.ConfigFile, a.config)
 	if err != nil {
 		log.Println(err.Error())
 		return

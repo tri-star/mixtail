@@ -7,6 +7,7 @@ import (
 	"github.com/tri-star/mixtail/mixtail/ext/extssh"
 	"github.com/tri-star/mixtail/mixtail/service"
 	"github.com/tri-star/mixtail/mixtail/ext"
+	"github.com/tri-star/mixtail/mixtail/entity"
 )
 
 func TestParse(t *testing.T) {
@@ -31,7 +32,8 @@ log:
   path: /tmp/test.log
 `)
 
-	conf, err := cs.Parse(yaml)
+	conf := entity.NewConfig()
+	err := cs.Parse(yaml, conf)
 	if err != nil {
 		t.Logf(err.Error())
 		t.Fail()

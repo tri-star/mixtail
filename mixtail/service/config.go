@@ -22,12 +22,12 @@ func NewConfig(em *lib.ExtensionManager) (c *Config) {
 
 
 // Parse data from given file path.
-func (c *Config) ParseFromFile(path string) (conf *entity.Config, err error) {
+func (c *Config) ParseFromFile(path string, conf *entity.Config) (err error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return
 	}
-	conf, err = c.Parse(data)
+	err = c.Parse(data, conf)
 	if err != nil {
 		return
 	}
@@ -35,13 +35,16 @@ func (c *Config) ParseFromFile(path string) (conf *entity.Config, err error) {
 }
 
 // Parse data from given byte slices.
-func (c *Config) Parse(data []byte) (conf *entity.Config, err error) {
+func (c *Config) Parse(data []byte, conf *entity.Config) (err error) {
 	var parseResult interface{}
 	err = yaml.Unmarshal(data, &parseResult)
 	if err != nil{
 		return
 	}
-	conf = entity.NewConfig()
+
+	if conf == nil {
+		conf = entity.NewConfig()
+	}
 
 	// Get "input" section.
 	inputSettingSection, ok := parseResult.(map[interface{}]interface{})["input"]
@@ -55,7 +58,6 @@ func (c *Config) Parse(data []byte) (conf *entity.Config, err error) {
 		if err != nil {
 			return
 		}
-
 	}
 
 	logSection, ok := parseResult.(map[interface{}]interface{})["log"].(map[interface{}]interface{})
