@@ -24,14 +24,18 @@ input:
       - 192.168.1.13
       - 192.168.1.14
       - 192.168.1.15
+    # if you don't want define user,pass or identity here,
+    # you can define them in external file, see "Advanced usage" section.
     user: user_name
-    identity: /path/to/key
+    pass: password
+    # identity: /path/to/key
     command: tail -f /tmp/test.log
   yyy-log:
     type: ssh
     host: 192.168.1.10
     user: user_name
-    identity: /path/to/key
+    pass: password
+    # identity: /path/to/key
     command: tail -f /tmp/another.log | grep "error"
 ```
 
@@ -76,7 +80,34 @@ options:
   --version: Show version.
   --help:    Show this help.
 ```
- 
+
+### Advanced usage
+
+#### Define credential info at external config file.
+If you don't want define user,pass or identity in config.yml,
+you can define them in external config file(./.mixtail.yml or ~/.mixtail.yml).
+
+Example:
+```
+cat > ./.mixtail.yml <<EOT
+default:
+  user: username
+  identity: path/to/key
+EOT
+# if you have defined above settings,
+# you can ommit user,pass or identity in config.yml.
+cat > ./config.yml <<EOT
+input:
+  xxx-log:
+    type: ssh
+    host: 
+      - 192.168.1.10
+      - 192.168.1.11
+    command: tail -f /tmp/test.log
+EOT
+mixtail config.yml
+```
+
 ## Install
 
 ### Binary installation
